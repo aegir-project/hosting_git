@@ -1,0 +1,25 @@
+<?php
+
+/**
+ * Implementation of hook_hosting_tasks
+ */
+function hosting_site_git_pull_hosting_tasks() {
+  $tasks = array();
+
+  $tasks['site']['hosting_site_git_pull'] = array(
+    'title' => t('Pull git'),
+    'description' => t('Runs a git pull on the current site when applicable.'),
+  );
+
+  return $tasks;
+}
+
+/**
+ * Implementation of hook_perm()
+ */
+function hosting_site_git_pull_perm() {
+  return array(
+    'create hosting_site_git_pull task',
+  );
+}
+
