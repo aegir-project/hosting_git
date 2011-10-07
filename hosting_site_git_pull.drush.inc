@@ -34,6 +34,12 @@ function drush_hosting_site_git_pull_provision_git_pull() {
   // Pull
   if (drush_shell_cd_and_exec($site_path, 'git pull')) {
     drush_log(dt('Pulled from git on !path', array('!path' => $site_path)), 'ok');
+
+    // Submodule in git? lets update those.
+    if (file_exists($site_path . '/.gitmodules')) {
+      drush_shell_cd_and_exec($site_path, 'git submodules init');
+      drush_shell_cd_and_exec($site_path, 'git submodules update');
+    } 
   }
   else {
     return drush_set_error('DRUSH_PROVISION_GIT_PULL_FAILED', dt("Drush was unable to get Git pull in the site dir on !path.\nThe specific errors are below:\n!errors", array('!path' => $site_path, '!errors' => implode("\n", drush_shell_exec_output()))));
