@@ -37,8 +37,8 @@ function drush_hosting_site_git_pull_provision_git_pull() {
 
     // Submodule in git? lets update those.
     if (file_exists($site_path . '/.gitmodules')) {
-      drush_shell_cd_and_exec($site_path, 'git submodules init');
-      drush_shell_cd_and_exec($site_path, 'git submodules update');
+      drush_shell_cd_and_exec($site_path, 'git submodule init');
+      drush_shell_cd_and_exec($site_path, 'git submodule update');
     } 
   }
   else {
