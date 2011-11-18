@@ -43,6 +43,11 @@ function drush_hosting_site_git_pull_provision_git_pull() {
       drush_shell_cd_and_exec($site_path, 'git submodule init');
       drush_shell_cd_and_exec($site_path, 'git submodule update');
     } 
+
+    // Re-verify the site, this corrects the file permission when necessary
+    $options = array();
+    $target = d()->uri;
+    provision_backend_invoke($target, 'provision-verify', array(), $options);
   }
   else {
     return drush_set_error('DRUSH_PROVISION_GIT_PULL_FAILED', dt("Drush was unable to get Git pull in the site dir on !path.\nThe specific errors are below:\n!errors", array('!path' => $site_path, '!errors' => implode("\n", drush_shell_exec_output()))));
