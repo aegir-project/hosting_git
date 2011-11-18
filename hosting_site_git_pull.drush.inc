@@ -21,7 +21,7 @@ function hosting_site_git_pull_drush_command() {
 
 
 /**
- * Implements the git_pull command.
+ * Implements the provision-git_pull command.
  */
 function drush_hosting_site_git_pull_provision_git_pull() {
   $site_path = d()->site_path;
