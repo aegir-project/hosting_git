@@ -31,6 +31,9 @@ function drush_hosting_site_git_pull_provision_git_pull() {
     return drush_set_error('DRUSH_PROVISION_GIT_PULL_FAILED', dt("The site does not seem to ge a valid Git clone in !path", array('!path' => $site_path)));
   }
 
+  // Reset local modifications, git pull fails when there are local modifications in Git, wipe those first DANGEROUS!
+  drush_shell_cd_and_exec($site_path, 'git reset --hard');
+
   // Pull
   if (drush_shell_cd_and_exec($site_path, 'git pull')) {
     drush_log(dt('Pulled from git on !path', array('!path' => $site_path)), 'ok');
