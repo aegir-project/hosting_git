@@ -7,7 +7,7 @@ function hosting_site_git_pull_hosting_tasks() {
   $tasks = array();
 
   $tasks['site']['git_pull'] = array(
-    'title' => t('Pull git'),
+    'title' => t('Git pull'),
     'description' => t('Runs a git pull on the current site when applicable.'),
   );
 
