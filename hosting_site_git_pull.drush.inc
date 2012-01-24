@@ -28,7 +28,7 @@ function drush_hosting_site_git_pull_provision_git_pull() {
 
   // Check that the site is actually using Git
   if (!is_dir($site_path . '/.git')) {
-    return drush_set_error('DRUSH_PROVISION_GIT_PULL_FAILED', dt("The site does not seem to ge a valid Git clone in !path", array('!path' => $site_path)));
+    return drush_set_error('DRUSH_PROVISION_GIT_PULL_FAILED', dt("The site does not seem to be a valid Git clone in !path", array('!path' => $site_path)));
   }
 
   // Reset local modifications, git pull fails when there are local modifications in Git, wipe those first DANGEROUS!
