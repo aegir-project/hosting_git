@@ -147,7 +147,7 @@ function drush_provision_git_commit() {
 }
 
 /**
- * Implements the provision-git_pull command.
+ * Implements the provision-git-reset command.
  */
 function drush_provision_git_reset() {
   $site_path = d()->platform->root;
