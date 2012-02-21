@@ -25,12 +25,16 @@ function hosting_site_git_drush_command() {
       'location' => dt('The location where the git repository will be cloned.'),
     ),
   );
-  
+
   $items['provision-git_checkout'] = array(
-    'description' => 'Git checkout a tag in a specified location.',
-    'bootstrap' => DRUSH_BOOTSTRAP_DRUSH
+    'description' => 'Git checkout a branch or tag in a specified location.',
+    'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
+    'arguments' => array(
+      'tag' => dt('Parameter for the git checkout command'),
+      'location' => dt('Location in the site structure where the command should be performed.')
+    ),
   );
-  
+
   return $items;
 }
 
@@ -56,7 +60,7 @@ function drush_hosting_site_git_provision_git_pull() {
     if (file_exists($site_path . '/.gitmodules')) {
       drush_shell_cd_and_exec($site_path, 'git submodule init');
       drush_shell_cd_and_exec($site_path, 'git submodule update');
-    } 
+    }
 
     // Re-verify the site, this corrects the file permission when necessary
     $options = array();
@@ -70,8 +74,8 @@ function drush_hosting_site_git_provision_git_pull() {
 
 
 /**
-* Map values of site node into command line arguments
-*/
+ * Map values of site node into command line arguments
+ */
 function drush_hosting_site_git_pre_hosting_task($task) {
   $task =& drush_get_context('HOSTING_TASK');
 
@@ -80,7 +84,6 @@ function drush_hosting_site_git_pre_hosting_task($task) {
     $task->args[1] = $task->task_args['gitrepo'];
     $task->args[2] = $task->task_args['location'];
   }
-
 }
 
 /**
@@ -90,35 +93,35 @@ function drush_hosting_site_git_provision_git_clone($gitrepo, $location) {
 
   drush_log(dt('Start git clone command'), 'ok');
   drush_log(dt('Git repo: ').$gitrepo, 'ok');
-	drush_log(dt('Location: ').$location, 'ok');
-	
-	// Get the site path
-	$site_path = d()->site_path;
-	
-	// Location to execute the git command
-	// TODO Check if dir exists, if not create it
-	
-	$git_command_path = $site_path . '/' . $location;
-	
-	// Try to perform the git clone
-	if(drush_shell_cd_and_exec($git_command_path, 'git clone '.$gitrepo.' .')) {
-	  // Log the fact that it worked
-	  drush_log(dt('Cloned from git on !path', array('!path' => $git_command_path)), 'ok');
-	
-	  // Verify the site to include any changes
-	  $options = array();
-	  $target = d()->uri;
-	  provision_backend_invoke($target, 'provision-verify', array(), $options);
-	}
-	else {
-	  // The command failed
-	  return drush_set_error('DRUSH_PROVISION_GIT_CLONE_FAILED', dt("Drush was unable to get Git clone in the site dir on !path.\nThe specific errors are below:\n!errors", array('!path' => $git_command_path, '!errors' => implode("\n", drush_shell_exec_output()))));
-	}	
+  drush_log(dt('Location: ').$location, 'ok');
+
+  // Get the site path
+  $site_path = d()->site_path;
+
+  // Location to execute the git command
+  // TODO Check if dir exists, if not create it
+
+  $git_command_path = $site_path . '/' . $location;
+
+  // Try to perform the git clone
+  if(drush_shell_cd_and_exec($git_command_path, 'git clone '.$gitrepo.' .')) {
+    // Log the fact that it worked
+    drush_log(dt('Cloned from git on !path', array('!path' => $git_command_path)), 'ok');
+
+    // Verify the site to include any changes
+    $options = array();
+    $target = d()->uri;
+    provision_backend_invoke($target, 'provision-verify', array(), $options);
+  }
+  else {
+    // The command failed
+    return drush_set_error('DRUSH_PROVISION_GIT_CLONE_FAILED', dt("Drush was unable to get Git clone in the site dir on !path.\nThe specific errors are below:\n!errors", array('!path' => $git_command_path, '!errors' => implode("\n", drush_shell_exec_output()))));
+  }
 }
 
 /**
- * Implements the provision-git_checkout command 
+ * Implements the provision-git_checkout command
  */
-function drush_hosting_site_git_provision_git_checkout() {
-	drush_log(dt('STUB'), 'ok');
+function drush_hosting_site_git_provision_git_checkout($tag, $location) {
+  drush_log(dt('STUB'), 'ok');
 }

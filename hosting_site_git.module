@@ -18,9 +18,9 @@ function hosting_site_git_hosting_tasks() {
   );
 
   $tasks['site']['git_checkout'] = array(
-    	'title' => t('Git checkout'),
-    	'description' => t('Perform a git checkout'),
-  //'dialog' => TRUE
+    'title' => t('Git checkout'),
+    'description' => t('Perform a git checkout'),
+    'dialog' => TRUE
   );
 
 
@@ -108,6 +108,48 @@ function hosting_task_git_clone_form_validate($form, &$form_state) {
   $form_state['values']['parameters']['location'] = $form_state['values']['location'];
 }
 
+/**
+ * Implementation of hook_form()
+ */
+function hosting_task_git_checkout_form($node) {
+  // Get the path to the site
+  $site_path = _hosting_site_git_getsitepath($node);
+
+  // We can only perform a checkout when there's a path and there's a git repository
+  if($site_path) {
+    // The git repo
+    $form['tag'] = array(
+      '#title' => t('The tag or branch'),
+      '#description' => t("Enter the name of the tag or branch."),
+      '#type' => 'textfield',
+      '#required' => TRUE,
+      '#weight' => '-1',
+      '#default_value' => ''
+    );
+
+  }
+  else {
+    $form['error'] = array(
+      '#type' => 'markup',
+      '#value' => t('We were not able to determine the path on the file system where the site is published.'),
+    );
+    // TODO Check if this works
+    $form['submit']['#disabled'] = true;
+  }
+
+  $form['#node'] = $node;
+  return $form;
+}
+
+/**
+ * Implementation of hook_validate()
+ */
+function hosting_task_git_checkout_form_validate($form, &$form_state) {
+
+}
+
+/* Private functions */
+
 function _hosting_site_git_isdirempty($dir) {
   // Check to see if the target dir is empty
   if($handle = @opendir($dir)){
@@ -122,6 +164,8 @@ function _hosting_site_git_isdirempty($dir) {
   }
   return TRUE;
 }
+
+
 
 function _hosting_site_git_getsitepath($node) {
   // Select the platform publish_path for $node->platform
