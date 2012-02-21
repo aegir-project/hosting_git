@@ -72,17 +72,17 @@ function hosting_task_git_clone_form($node) {
 
 
     foreach($options as $key => $option) {
-      
+
       $form['location'][$key] = array(
         '#type' => 'radio',
         '#title' => $option,
         '#return_value' => $key,
         '#parents' => array('location')
       );
-      
+
       if(!_hosting_site_git_isdirempty($site_path . '/'. $key)) {
-        $form['location'][$key]['#disabled'] = TRUE;    
-        $form['location'][$key]['#description'] = t('The target directory for %option is not empty. Git needs an empty directory for the clone operation', array('%option' => $option));                    
+        $form['location'][$key]['#disabled'] = TRUE;
+        $form['location'][$key]['#description'] = t('The target directory for %option is not empty. Git needs an empty directory for the clone operation', array('%option' => $option));
       }
     }
 
@@ -95,10 +95,18 @@ function hosting_task_git_clone_form($node) {
     // TODO Check if this works
     $form['submit']['#disabled'] = true;
   }
+
   $form['#node'] = $node;
   return $form;
 }
 
+/**
+ * Implements hook_validate()
+ */
+function hosting_task_git_clone_form_validate($form, &$form_state) {
+  // Pass the value from location to the parameters location
+  $form_state['values']['parameters']['location'] = $form_state['values']['location'];
+}
 
 function _hosting_site_git_isdirempty($dir) {
   // Check to see if the target dir is empty
