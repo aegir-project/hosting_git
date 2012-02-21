@@ -1,6 +1,0 @@
-name = Site git pull task
-description = Allow hostmaster manage hosted sites using Git.
-package = Hosting
-dependencies[] = hosting_site
-core = 6.x
-

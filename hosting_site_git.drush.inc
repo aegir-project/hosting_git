@@ -11,19 +11,29 @@
 /**
  * Implementation of hook_drush_command().
  */
-function hosting_site_git_pull_drush_command() {
+function hosting_site_git_drush_command() {
   $items['provision-git_pull'] = array(
     'description' => 'Git pull a site directory.',
     'bootstrap' => DRUSH_BOOTSTRAP_DRUSH
   );
+
+  $items['provision-git_clone'] = array(
+    'description' => 'Git clone a repo in a specified location.',
+    'bootstrap' => DRUSH_BOOTSTRAP_DRUSH
+  );
+  
+  $items['provision-git_checkout'] = array(
+    'description' => 'Git checkout a tag in a specified location.',
+    'bootstrap' => DRUSH_BOOTSTRAP_DRUSH
+  );
+  
   return $items;
 }
-
 
 /**
  * Implements the provision-git_pull command.
  */
-function drush_hosting_site_git_pull_provision_git_pull() {
+function drush_hosting_site_git_provision_git_pull() {
   $site_path = d()->site_path;
 
   // Check that the site is actually using Git
@@ -54,3 +64,25 @@ function drush_hosting_site_git_pull_provision_git_pull() {
   }
 }
 
+/**
+ * Implements the provision-git_clone command
+ */
+function drush_hosting_site_git_provision_git_clone() {
+	drush_log(dt('STUB'), 'ok');
+	$task =& drush_get_context('HOSTING_TASK');
+	
+/*	$location = drush_get_option('location');
+	$gitrepo = drush_get_option('gitrepo');
+	
+	
+	drush_log(dt('Location: ').$location, 'ok');
+	drush_log(dt('Git repo: ').$gitrepo, 'ok');
+	*/
+}
+
+/**
+ * Implements the provision-git_checkout command 
+ */
+function drush_hosting_site_git_provision_git_checkout() {
+	drush_log(dt('STUB'), 'ok');
+}

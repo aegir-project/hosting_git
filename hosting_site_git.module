@@ -1,0 +1,128 @@
+<?php
+
+/**
+ * Implementation of hook_hosting_tasks
+ */
+function hosting_site_git_hosting_tasks() {
+  $tasks = array();
+
+  $tasks['site']['git_pull'] = array(
+    'title' => t('Git pull'),
+    'description' => t('Runs a git pull on the current site when applicable.'),
+  );
+
+  $tasks['site']['git_clone'] = array(
+  	'title' => t('Git clone'),
+  	'description' => t('Clone a git repository in a location of your choice.'),
+  	'dialog' => TRUE
+  );
+
+  $tasks['site']['git_checkout'] = array(
+    	'title' => t('Git checkout'),
+    	'description' => t('Perform a git checkout'),
+  //'dialog' => TRUE
+  );
+
+
+  return $tasks;
+}
+
+/**
+ * Implementation of hook_perm()
+ */
+function hosting_site_git_perm() {
+  return array(
+    'create git_pull task',
+  );
+}
+
+
+/**
+ * Implementation of hook_form()
+ */
+function hosting_task_git_clone_form($node) {
+
+  $site_path = _hosting_site_git_getsitepath($node);
+
+  if($site_path) {
+
+    // The git repo
+    $form['gitrepo'] = array(
+    	'#title' => t('Git repository'),
+    	'#description' => t("Enter the repository string you want to clone."),
+    	'#type' => 'textfield',
+    	'#required' => TRUE,
+    	'#weight' => '-1',
+    	'#default_value' => ''
+    );
+
+    // The location where the repo should be cloned
+    // We currently support modules, libraries, themes and settings
+    $options = array(
+	  	'modules' => t('Modules'),
+	  	'themes' => t('Themes'),
+	  	'libraries' => t('Libraries'),
+	  	'settings' => t('Settings'),
+    );
+
+    $form['location'] = array(
+	  	'#title' => t('Location'),
+	  	'#type' => 'radios',
+    );
+
+
+    foreach($options as $key => $option) {
+      
+      $form['location'][$key] = array(
+        '#type' => 'radio',
+        '#title' => $option,
+        '#return_value' => $key,
+        '#parents' => array('location')
+      );
+      
+      if(!_hosting_site_git_isdirempty($site_path . '/'. $key)) {
+        $form['location'][$key]['#disabled'] = TRUE;    
+        $form['location'][$key]['#description'] = t('The target directory for %option is not empty. Git needs an empty directory for the clone operation', array('%option' => $option));                    
+      }
+    }
+
+  }
+  else {
+    $form['error'] = array(
+      '#type' => 'markup',
+      '#value' => t('We were not able to determine the path on the file system where the site is published.'),
+    );
+    // TODO Check if this works
+    $form['submit']['#disabled'] = true;
+  }
+  $form['#node'] = $node;
+  return $form;
+}
+
+
+function _hosting_site_git_isdirempty($dir) {
+  // Check to see if the target dir is empty
+  if($handle = @opendir($dir)){
+    // open directory
+    while(($file = readdir($handle)) !== false){
+      if($file != "." && $file != ".."){
+        closedir($handle);      // Close directory
+        return FALSE;
+      }
+    }
+    closedir($handle);      // Close directory
+  }
+  return TRUE;
+}
+
+function _hosting_site_git_getsitepath($node) {
+  // Select the platform publish_path for $node->platform
+  $platform_publishpath = db_result(db_query("SELECT publish_path FROM {hosting_platform} WHERE nid = %d", $node->platform));
+
+  if($platform_publishpath) {
+    return $platform_publishpath . '/sites/' . $node->title;
+  }
+  else {
+    return false;
+  }
+}
