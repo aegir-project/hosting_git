@@ -156,4 +156,7 @@ function drush_provision_git_reset() {
   if (drush_shell_cd_and_exec($site_path, 'git reset --hard')){
     drush_log(dt('Git repository reset.'), 'ok');
   }
+  else {
+    return drush_set_error('DRUSH_PROVISION_GIT_PULL_FAILED', dt("Git commit failed in !path.\nThe specific errors are below:\n!errors", array('!path' => $site_path, '!errors' => implode("\n", drush_shell_exec_output()))));
+  }
 }
