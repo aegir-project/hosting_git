@@ -84,6 +84,10 @@ function drush_hosting_site_git_pre_hosting_task($task) {
     $task->args[1] = $task->task_args['gitrepo'];
     $task->args[2] = $task->task_args['location'];
   }
+  elseif ($task->task_type == 'git_checkout') {
+    $task->args[1] = $task->task_args['tag'];
+    $task->args[2] = $task->task_args['location'];
+  }
 }
 
 /**
@@ -107,7 +111,8 @@ function drush_hosting_site_git_provision_git_clone($gitrepo, $location) {
   if(drush_shell_cd_and_exec($git_command_path, 'git clone '.$gitrepo.' .')) {
     // Log the fact that it worked
     drush_log(dt('Cloned from git on !path', array('!path' => $git_command_path)), 'ok');
-
+    drush_log(dt('!output', array('!output' => drush_shell_exec_output())),'notice');
+    
     // Verify the site to include any changes
     $options = array();
     $target = d()->uri;
@@ -119,9 +124,43 @@ function drush_hosting_site_git_provision_git_clone($gitrepo, $location) {
   }
 }
 
+
 /**
  * Implements the provision-git_checkout command
  */
 function drush_hosting_site_git_provision_git_checkout($tag, $location) {
-  drush_log(dt('STUB'), 'ok');
+  drush_log(dt('Start git checkout command'), 'ok');
+  drush_log(dt('Git tag: ').$tag, 'ok');
+  drush_log(dt('Location: ').$location, 'ok');
+  
+  // Get the site path
+  $site_path = d()->site_path;
+  
+  // Location to execute the git command
+  // TODO Check if dir exists, if not throw an error
+  $git_command_path = $site_path . '/' . $location;
+  
+  // Fetch the tags
+  if(drush_shell_cd_and_exec($git_command_path, 'git fetch --tags')) {
+    drush_log(dt('Git fetch command executed.'), 'ok');              
+    
+    // Perform a checkout of the selected tag
+    if(drush_shell_cd_and_exec($git_command_path, 'git checkout '.$tag)) {
+      drush_log(dt('Git checkout command executed.'), 'ok');
+      // Log the output
+      drush_log(dt('!output', array('!output' => implode("\n", drush_shell_exec_output()))), 'notice');
+      
+      // Verify the site to include any changes
+      $options = array();
+      $target = d()->uri;
+      provision_backend_invoke($target, 'provision-verify', array(), $options);
+      
+    }
+    else {
+      return drush_set_error('DRUSH_PROVISION_GIT_CHECKOUT_FAILED', dt("Drush was unable to perform a git checkout !tag on !path.\nThe specific errors are below:\n!errors", array('!path' => $git_command_path, '!tag' => $tag, '!errors' => implode("\n", drush_shell_exec_output()))));      
+    }
+  }
+  else {
+    return drush_set_error('DRUSH_PROVISION_GIT_FETCH_FAILED', dt("Drush was unable to perform a git fetch --tags on !path.\nThe specific errors are below:\n!errors", array('!path' => $git_command_path, '!errors' => implode("\n", drush_shell_exec_output()))));
+  }  
 }
