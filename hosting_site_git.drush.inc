@@ -111,7 +111,7 @@ function drush_hosting_site_git_provision_git_clone($gitrepo, $location) {
   if(drush_shell_cd_and_exec($git_command_path, 'git clone '.$gitrepo.' .')) {
     // Log the fact that it worked
     drush_log(dt('Cloned from git on !path', array('!path' => $git_command_path)), 'ok');
-    drush_log(dt('!output', array('!output' => drush_shell_exec_output())),'notice');
+    drush_log(dt('!output', array('!output' => implode("\n", drush_shell_exec_output()))),'notice');
     
     // Verify the site to include any changes
     $options = array();
