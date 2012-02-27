@@ -108,7 +108,7 @@ function drush_hosting_site_git_provision_git_clone($gitrepo, $location) {
   $git_command_path = $site_path . '/' . $location;
 
   // Try to perform the git clone
-  if (drush_shell_cd_and_exec($git_command_path, 'git clone ' . $gitrepo . ' .')) {
+  if (drush_shell_cd_and_exec($git_command_path, 'git clone %s .', $gitrepo)) {
     // Log the fact that it worked
     drush_log(dt('Cloned from git on !path', array('!path' => $git_command_path)), 'ok');
     drush_log(dt('!output', array('!output' => implode("\n", drush_shell_exec_output()))), 'notice');
@@ -144,7 +144,7 @@ function drush_hosting_site_git_provision_git_checkout($tag, $location) {
     drush_log(dt('Git fetch command executed.'), 'ok');
 
     // Perform a checkout of the selected tag
-    if (drush_shell_cd_and_exec($git_command_path, 'git checkout ' . $tag)) {
+    if (drush_shell_cd_and_exec($git_command_path, 'git checkout %s', $tag)) {
       drush_log(dt('Git checkout command executed.'), 'ok');
       // Log the output
       drush_log(dt('!output', array('!output' => implode("\n", drush_shell_exec_output()))), 'notice');
