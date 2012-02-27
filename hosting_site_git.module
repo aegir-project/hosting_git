@@ -12,9 +12,9 @@ function hosting_site_git_hosting_tasks() {
   );
 
   $tasks['site']['git_clone'] = array(
-  	'title' => t('Git clone'),
-  	'description' => t('Clone a git repository in a location of your choice.'),
-  	'dialog' => TRUE
+    'title' => t('Git clone'),
+    'description' => t('Clone a git repository in a location of your choice.'),
+    'dialog' => TRUE
   );
 
   $tasks['site']['git_checkout'] = array(
@@ -36,7 +36,6 @@ function hosting_site_git_perm() {
   );
 }
 
-
 /**
  * Implementation of hook_form()
  */
@@ -44,16 +43,16 @@ function hosting_task_git_clone_form($node) {
 
   $site_path = _hosting_site_git_getsitepath($node);
 
-  if($site_path) {
+  if ($site_path) {
 
     // The git repo
     $form['gitrepo'] = array(
-    	'#title' => t('Git repository'),
-    	'#description' => t("Enter the repository string you want to clone."),
-    	'#type' => 'textfield',
-    	'#required' => TRUE,
-    	'#weight' => '-1',
-    	'#default_value' => ''
+      '#title' => t('Git repository'),
+      '#description' => t("Enter the repository string you want to clone."),
+      '#type' => 'textfield',
+      '#required' => TRUE,
+      '#weight' => '-1',
+      '#default_value' => ''
     );
 
     // The location where the repo should be cloned
@@ -61,12 +60,12 @@ function hosting_task_git_clone_form($node) {
     $options = _hosting_site_git_getgitlocations();
 
     $form['location'] = array(
-	  	'#title' => t('Location'),
-	  	'#type' => 'radios',
+      '#title' => t('Location'),
+      '#type' => 'radios',
     );
 
 
-    foreach($options as $key => $option) {
+    foreach ($options as $key => $option) {
 
       $form['location'][$key] = array(
         '#type' => 'radio',
@@ -75,12 +74,11 @@ function hosting_task_git_clone_form($node) {
         '#parents' => array('location')
       );
 
-      if(!_hosting_site_git_isdirempty($site_path . '/'. $key)) {
+      if (!_hosting_site_git_isdirempty($site_path . '/' . $key)) {
         $form['location'][$key]['#disabled'] = TRUE;
         $form['location'][$key]['#description'] = t('The target directory for %option is not empty. Git needs an empty directory for the clone operation', array('%option' => $option));
       }
     }
-
   }
   else {
     $form['error'] = array(
@@ -88,7 +86,7 @@ function hosting_task_git_clone_form($node) {
       '#value' => t('We were not able to determine the path on the file system where the site is published.'),
     );
     // TODO Check if this works
-    $form['submit']['#disabled'] = true;
+    $form['submit']['#disabled'] = TRUE;
   }
 
   $form['#node'] = $node;
@@ -111,7 +109,7 @@ function hosting_task_git_checkout_form($node) {
   $site_path = _hosting_site_git_getsitepath($node);
 
   // We can only perform a checkout when there's a path and there's a git repository
-  if($site_path) {
+  if ($site_path) {
     // The git repo
     $form['tag'] = array(
       '#title' => t('The tag name'),
@@ -130,16 +128,16 @@ function hosting_task_git_checkout_form($node) {
       '#type' => 'radios',
     );
 
-    foreach($options as $key => $option) {
-    
+    foreach ($options as $key => $option) {
+
       $form['location'][$key] = array(
         '#type' => 'radio',
         '#title' => $option,
         '#return_value' => $key,
         '#parents' => array('location')
       );
-    
-      if(!is_dir($site_path . '/'. $key . '/.git')) {
+
+      if (!is_dir($site_path . '/' . $key . '/.git')) {
         $form['location'][$key]['#disabled'] = TRUE;
         $form['location'][$key]['#description'] = t('The target directory for %option has no .git directory. The git checkout command needs a git repo present.', array('%option' => $option));
       }
@@ -151,7 +149,7 @@ function hosting_task_git_checkout_form($node) {
       '#value' => t('We were not able to determine the path on the file system where the site is published.'),
     );
     // TODO Check if this works
-    $form['submit']['#disabled'] = true;
+    $form['submit']['#disabled'] = TRUE;
   }
 
   $form['#node'] = $node;
@@ -170,10 +168,10 @@ function hosting_task_git_checkout_form_validate($form, &$form_state) {
 
 function _hosting_site_git_isdirempty($dir) {
   // Check to see if the target dir is empty
-  if($handle = @opendir($dir)){
+  if ($handle = @opendir($dir)) {
     // open directory
-    while(($file = readdir($handle)) !== false){
-      if($file != "." && $file != ".."){
+    while (($file = readdir($handle)) !== FALSE) {
+      if ($file != "." && $file != "..") {
         closedir($handle);      // Close directory
         return FALSE;
       }
@@ -183,17 +181,15 @@ function _hosting_site_git_isdirempty($dir) {
   return TRUE;
 }
 
-
-
 function _hosting_site_git_getsitepath($node) {
   // Select the platform publish_path for $node->platform
   $platform_publishpath = db_result(db_query("SELECT publish_path FROM {hosting_platform} WHERE nid = %d", $node->platform));
 
-  if($platform_publishpath) {
+  if ($platform_publishpath) {
     return $platform_publishpath . '/sites/' . $node->title;
   }
   else {
-    return false;
+    return FALSE;
   }
 }
 
