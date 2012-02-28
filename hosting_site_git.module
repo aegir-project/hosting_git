@@ -199,6 +199,5 @@ function _hosting_site_git_getgitlocations() {
     'modules' => t('Modules'),
     'themes' => t('Themes'),
     'libraries' => t('Libraries'),
-    'settings' => t('Settings'),
   );
 }
