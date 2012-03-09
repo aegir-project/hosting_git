@@ -43,9 +43,9 @@ function provision_git_drush_command() {
  */
 function provision_git_is_repo($site_path = NULL){
   if (!$site_path){  
-    $site_path = d()->platform->root;
+    $site_path = d()->platform->root? d()->platform->root: d()->root;
   }
-
+  
   //If shell returns False, this is not a git repo
   if (!drush_shell_cd_and_exec($site_path, 'git status')){
     drush_set_error('DRUSH_PROVISION_GIT_PULL_FAILED', dt("Git repository not found in: !path", array('!path' => $site_path)));
@@ -85,8 +85,11 @@ function drush_provision_pre_provision_git_reset(){
  * Implements the provision-git-pull command.
  */
 function drush_provision_git_pull() {
-  $site_path = d()->platform->root;
-  $target = d()->platform->name;
+  
+  //Determine if platform or site.
+  //Global way to do this?
+  $site_path = d()->platform->root? d()->platform->root: d()->root;
+  $target = d()->platform->name? d()->platform->name: d()->name;
   
   //Only git reset --hard if option says so.
   if (drush_get_option('reset') == TRUE){
@@ -107,8 +110,11 @@ function drush_provision_git_pull() {
  * Implements the provision-git-push command.
  */
 function drush_provision_git_push() {
-  $site_path = d()->platform->root;
-  $target = d()->platform->name;
+  
+  //Determine if platform or site.
+  //Global way to do this?
+  $site_path = d()->platform->root? d()->platform->root: d()->root;
+  $target = d()->platform->name? d()->platform->name: d()->name;
   
   //Execute git push
   if (drush_shell_cd_and_exec($site_path, 'git push')) {
@@ -124,8 +130,11 @@ function drush_provision_git_push() {
  * Implements the provision-git-commit command.
  */
 function drush_provision_git_commit() {
-  $site_path = d()->platform->root;
-  $target = d()->platform->name;
+  
+  //Determine if platform or site.
+  //Global way to do this?
+  $site_path = d()->platform->root? d()->platform->root: d()->root;
+  $target = d()->platform->name? d()->platform->name: d()->name;
   
   //Generate commit message
   $message = array();
@@ -147,16 +156,17 @@ function drush_provision_git_commit() {
 }
 
 /**
- * Implements the provision-git-reset command.
+ * Implements the provision-git_pull command.
  */
 function drush_provision_git_reset() {
-  $site_path = d()->platform->root;
-
+  
+  //Determine if platform or site.
+  //Global way to do this?
+  $site_path = d()->platform->root? d()->platform->root: d()->root;
+  $target = d()->platform->name? d()->platform->name: d()->name;
+  
   //Call git reset --hard which resets to the last pulled commit
   if (drush_shell_cd_and_exec($site_path, 'git reset --hard')){
     drush_log(dt('Git repository reset.'), 'ok');
-  }
-  else {
-    return drush_set_error('DRUSH_PROVISION_GIT_PULL_FAILED', dt("Git commit failed in !path.\nThe specific errors are below:\n!errors", array('!path' => $site_path, '!errors' => implode("\n", drush_shell_exec_output()))));
   }
 }
