@@ -39,6 +39,10 @@ function provision_git_drush_command() {
     'description' => 'Add files/directories to the Git index.',
     'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
     'aliases' => array('add'),
+    'arguments' => array(
+      'path' => 'Path to the file or folders you would like to add.',
+    ),
+    'required-arguments' => TRUE,
   );
   return $items;
 }
@@ -185,20 +189,16 @@ function drush_provision_git_reset() {
 /**
  * Implements the provision-git_add command.
  */
-function drush_provision_git_add($args = array()) {
+function drush_provision_git_add($path = '') {
   
   //Determine if platform or site.
   //Global way to do this?
   $site_path = d()->platform->root? d()->platform->root: d()->root;
   $target = d()->platform->name? d()->platform->name: d()->name;
- 
-  $p = "";
-  if($args && $args[0] != "") {
-    $p = $args[0];
-  }
- 
-  //Call git add. There may be a path
-  if (drush_shell_cd_and_exec($site_path, 'git add $p')){
-    drush_log(dt('Git add.'), 'ok');
+
+  // Call git add.
+  // Seems to pass even if the git add failed
+  if (drush_shell_cd_and_exec($site_path, "git add $path")){
+    drush_log(dt('Git add: '. $path), 'ok');
   }
 }
