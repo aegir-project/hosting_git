@@ -35,6 +35,11 @@ function provision_git_drush_command() {
     'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
     'aliases' => array('reset'),
   );
+  $items['provision-git-add'] = array(
+    'description' => 'Add files/directories to the Git index.',
+    'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
+    'aliases' => array('add'),
+  );
   return $items;
 }
 
@@ -78,6 +83,12 @@ function drush_provision_pre_provision_git_commit(){
  * Pre provision-git-reset hook
  */
 function drush_provision_pre_provision_git_reset(){
+  provision_git_is_repo();
+}
+/**
+ * Pre provision-git-add hook
+ */
+function drush_provision_pre_provision_git_add(){
   provision_git_is_repo();
 }
 
@@ -168,5 +179,26 @@ function drush_provision_git_reset() {
   //Call git reset --hard which resets to the last pulled commit
   if (drush_shell_cd_and_exec($site_path, 'git reset --hard')){
     drush_log(dt('Git repository reset.'), 'ok');
+  }
+}
+
+/**
+ * Implements the provision-git_add command.
+ */
+function drush_provision_git_add($args = array()) {
+  
+  //Determine if platform or site.
+  //Global way to do this?
+  $site_path = d()->platform->root? d()->platform->root: d()->root;
+  $target = d()->platform->name? d()->platform->name: d()->name;
+ 
+  $p = "";
+  if($args && $args[0] != "") {
+    $p = $args[0];
+  }
+ 
+  //Call git add. There may be a path
+  if (drush_shell_cd_and_exec($site_path, 'git add $p')){
+    drush_log(dt('Git add.'), 'ok');
   }
 }
