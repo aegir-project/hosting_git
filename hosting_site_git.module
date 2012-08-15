@@ -113,7 +113,7 @@ function hosting_task_git_checkout_form($node) {
     // The git repo
     $form['tag'] = array(
       '#title' => t('The tag name'),
-      '#description' => t("Enter the name of the tag."),
+      '#description' => t("Enter the name of the tag. This should already exist in the local clone, so you might have to pull first."),
       '#type' => 'textfield',
       '#required' => TRUE,
       '#weight' => '-1',
