@@ -196,6 +196,7 @@ function _hosting_site_git_getsitepath($node) {
 function _hosting_site_git_getgitlocations() {
   // TODO Should we make this configurable?
   return array(
+    '.' => t('Site specific folder root'),
     'modules' => t('Modules'),
     'themes' => t('Themes'),
     'libraries' => t('Libraries'),
