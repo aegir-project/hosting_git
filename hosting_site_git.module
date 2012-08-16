@@ -33,6 +33,8 @@ function hosting_site_git_hosting_tasks() {
 function hosting_site_git_perm() {
   return array(
     'create git_pull task',
+    'create git_clone task',
+    'create git_checkout task',
   );
 }
 
