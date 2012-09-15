@@ -50,16 +50,16 @@ function provision_git_drush_command() {
 /**
  * Helper for verifying a repo
  */
-function provision_git_is_repo($site_path = NULL){
-  if (!$site_path){  
-    $site_path = d()->platform->root? d()->platform->root: d()->root;
+function provision_git_is_repo($repo_path = NULL){
+  if (!$repo_path){  
+    $repo_path = d()->platform->root? d()->platform->root: d()->root;
   }
   
   //If shell returns False, this is not a git repo
-  if (!drush_shell_cd_and_exec($site_path, 'git status')){
-    drush_set_error('DRUSH_PROVISION_GIT_PULL_FAILED', dt("Git repository not found in: !path", array('!path' => $site_path)));
+  if (!drush_shell_cd_and_exec($repo_path, 'git status')){
+    drush_set_error('DRUSH_PROVISION_GIT_PULL_FAILED', dt("Git repository not found in: !path", array('!path' => $repo_path)));
   } else {
-    drush_log(dt("Git repository found in !path", array('!path' => $site_path)), 'ok');
+    drush_log(dt("Git repository found in !path", array('!path' => $repo_path)), 'ok');
   }
 }
 
@@ -103,7 +103,7 @@ function drush_provision_git_pull() {
   
   //Determine if platform or site.
   //Global way to do this?
-  $site_path = d()->platform->root? d()->platform->root: d()->root;
+  $repo_path = d()->platform->root? d()->platform->root: d()->root;
   $target = d()->platform->name? d()->platform->name: d()->name;
   
   //Only git reset --hard if option says so.
@@ -112,12 +112,12 @@ function drush_provision_git_pull() {
   }
   
   //Execute git pull --rebase
-  if (drush_shell_cd_and_exec($site_path, 'git pull --rebase')) {
-    drush_log(dt('Git repository pulled.', array('!path' => $site_path)), 'ok');
+  if (drush_shell_cd_and_exec($repo_path, 'git pull --rebase')) {
+    drush_log(dt('Git repository pulled.', array('!path' => $repo_path)), 'ok');
     drush_log(implode("\n", drush_shell_exec_output()), 'ok');
   }
   else {
-    return drush_set_error('DRUSH_PROVISION_GIT_PULL_FAILED', dt("Git pull failed in !path.\nThe specific errors are below:\n!errors", array('!path' => $site_path, '!errors' => implode("\n", drush_shell_exec_output()))));
+    return drush_set_error('DRUSH_PROVISION_GIT_PULL_FAILED', dt("Git pull failed in !path.\nThe specific errors are below:\n!errors", array('!path' => $repo_path, '!errors' => implode("\n", drush_shell_exec_output()))));
   }
 }
 
@@ -128,16 +128,16 @@ function drush_provision_git_push() {
   
   //Determine if platform or site.
   //Global way to do this?
-  $site_path = d()->platform->root? d()->platform->root: d()->root;
+  $repo_path = d()->platform->root? d()->platform->root: d()->root;
   $target = d()->platform->name? d()->platform->name: d()->name;
   
   //Execute git push
-  if (drush_shell_cd_and_exec($site_path, 'git push')) {
+  if (drush_shell_cd_and_exec($repo_path, 'git push')) {
     drush_log(dt('Git repository pushed.'), 'ok');
     drush_log(implode("\n", drush_shell_exec_output()), 'ok');
   }
   else {
-    return drush_set_error('DRUSH_PROVISION_GIT_PULL_FAILED', dt("Git push failed in !path.\nThe specific errors are below:\n!errors", array('!path' => $site_path, '!errors' => implode("\n", drush_shell_exec_output()))));
+    return drush_set_error('DRUSH_PROVISION_GIT_PULL_FAILED', dt("Git push failed in !path.\nThe specific errors are below:\n!errors", array('!path' => $repo_path, '!errors' => implode("\n", drush_shell_exec_output()))));
   }
 }
 
@@ -148,7 +148,7 @@ function drush_provision_git_commit() {
   
   //Determine if platform or site.
   //Global way to do this?
-  $site_path = d()->platform->root? d()->platform->root: d()->root;
+  $repo_path = d()->platform->root? d()->platform->root: d()->root;
   $target = d()->platform->name? d()->platform->name: d()->name;
   
   //Generate commit message
@@ -161,12 +161,12 @@ function drush_provision_git_commit() {
   $message = implode("\n", $message);
 
   //Execute git pull --rebase
-  if (drush_shell_cd_and_exec($site_path, "git commit -am '$message'")) {
+  if (drush_shell_cd_and_exec($repo_path, "git commit -am '$message'")) {
     drush_log(dt('Git repository committed.'), 'ok');
     drush_log(implode("\n", drush_shell_exec_output()), 'ok');
   }
   else {
-    return drush_set_error('DRUSH_PROVISION_GIT_PULL_FAILED', dt("Git commit failed in !path.\nThe specific errors are below:\n!errors", array('!path' => $site_path, '!errors' => implode("\n", drush_shell_exec_output()))));
+    return drush_set_error('DRUSH_PROVISION_GIT_PULL_FAILED', dt("Git commit failed in !path.\nThe specific errors are below:\n!errors", array('!path' => $repo_path, '!errors' => implode("\n", drush_shell_exec_output()))));
   }
 }
 
@@ -177,11 +177,11 @@ function drush_provision_git_reset() {
   
   //Determine if platform or site.
   //Global way to do this?
-  $site_path = d()->platform->root? d()->platform->root: d()->root;
+  $repo_path = d()->platform->root? d()->platform->root: d()->root;
   $target = d()->platform->name? d()->platform->name: d()->name;
   
   //Call git reset --hard which resets to the last pulled commit
-  if (drush_shell_cd_and_exec($site_path, 'git reset --hard')){
+  if (drush_shell_cd_and_exec($repo_path, 'git reset --hard')){
     drush_log(dt('Git repository reset.'), 'ok');
   }
 }
@@ -193,12 +193,12 @@ function drush_provision_git_add($path = '') {
   
   //Determine if platform or site.
   //Global way to do this?
-  $site_path = d()->platform->root? d()->platform->root: d()->root;
+  $repo_path = d()->platform->root? d()->platform->root: d()->root;
   $target = d()->platform->name? d()->platform->name: d()->name;
 
   // Call git add.
   // Seems to pass even if the git add failed
-  if (drush_shell_cd_and_exec($site_path, "git add $path")){
+  if (drush_shell_cd_and_exec($repo_path, "git add $path")){
     drush_log(dt('Git add: '. $path), 'ok');
   }
 }
