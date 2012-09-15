@@ -52,13 +52,19 @@ function provision_git_drush_command() {
  */
 function provision_git_is_repo($repo_path = NULL){
   if (!$repo_path){  
-    $repo_path = d()->platform->root? d()->platform->root: d()->root;
+    if (d()->type === 'site') {
+      $repo_path = d()->site_path? d()->site_path: d()->root;
+    }
+    elseif (d()->type == 'platform') {
+      $repo_path = d()->platform->root? d()->platform->root: d()->root;
+    }
   }
   
   //If shell returns False, this is not a git repo
   if (!drush_shell_cd_and_exec($repo_path, 'git status')){
     drush_set_error('DRUSH_PROVISION_GIT_PULL_FAILED', dt("Git repository not found in: !path", array('!path' => $repo_path)));
   } else {
+    drush_set_option('repo_path', $repo_path);
     drush_log(dt("Git repository found in !path", array('!path' => $repo_path)), 'ok');
   }
 }
@@ -100,18 +106,16 @@ function drush_provision_pre_provision_git_add(){
  * Implements the provision-git-pull command.
  */
 function drush_provision_git_pull() {
+  $repo_path = drush_get_option('repo_path');
+  $target = d()->name;
   
-  //Determine if platform or site.
-  //Global way to do this?
-  $repo_path = d()->platform->root? d()->platform->root: d()->root;
-  $target = d()->platform->name? d()->platform->name: d()->name;
-  
-  //Only git reset --hard if option says so.
+  // Only git reset --hard if option says so.
   if (drush_get_option('reset') == TRUE){
     provision_backend_invoke($target, 'provision-git-reset');
   }
   
-  //Execute git pull --rebase
+  // Execute git pull --rebase
+  // @TODO: make rebase optional as well??  Haven't thought this through yet.
   if (drush_shell_cd_and_exec($repo_path, 'git pull --rebase')) {
     drush_log(dt('Git repository pulled.', array('!path' => $repo_path)), 'ok');
     drush_log(implode("\n", drush_shell_exec_output()), 'ok');
@@ -125,11 +129,8 @@ function drush_provision_git_pull() {
  * Implements the provision-git-push command.
  */
 function drush_provision_git_push() {
-  
-  //Determine if platform or site.
-  //Global way to do this?
-  $repo_path = d()->platform->root? d()->platform->root: d()->root;
-  $target = d()->platform->name? d()->platform->name: d()->name;
+  $repo_path = drush_get_option('repo_path');
+  $target = d()->name;
   
   //Execute git push
   if (drush_shell_cd_and_exec($repo_path, 'git push')) {
@@ -145,11 +146,8 @@ function drush_provision_git_push() {
  * Implements the provision-git-commit command.
  */
 function drush_provision_git_commit() {
-  
-  //Determine if platform or site.
-  //Global way to do this?
-  $repo_path = d()->platform->root? d()->platform->root: d()->root;
-  $target = d()->platform->name? d()->platform->name: d()->name;
+  $repo_path = drush_get_option('repo_path');
+  $target = d()->name;
   
   //Generate commit message
   $message = array();
@@ -174,11 +172,8 @@ function drush_provision_git_commit() {
  * Implements the provision-git_pull command.
  */
 function drush_provision_git_reset() {
-  
-  //Determine if platform or site.
-  //Global way to do this?
-  $repo_path = d()->platform->root? d()->platform->root: d()->root;
-  $target = d()->platform->name? d()->platform->name: d()->name;
+  $repo_path = drush_get_option('repo_path');
+  $target = d()->name;
   
   //Call git reset --hard which resets to the last pulled commit
   if (drush_shell_cd_and_exec($repo_path, 'git reset --hard')){
@@ -190,11 +185,8 @@ function drush_provision_git_reset() {
  * Implements the provision-git_add command.
  */
 function drush_provision_git_add($path = '') {
-  
-  //Determine if platform or site.
-  //Global way to do this?
-  $repo_path = d()->platform->root? d()->platform->root: d()->root;
-  $target = d()->platform->name? d()->platform->name: d()->name;
+  $repo_path = drush_get_option('repo_path');
+  $target = d()->name;
 
   // Call git add.
   // Seems to pass even if the git add failed
