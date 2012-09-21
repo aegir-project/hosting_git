@@ -161,12 +161,44 @@ function drush_provision_git_commit() {
   $message = implode("\n", $message);
 
   //Execute git pull --rebase
-  if (drush_shell_cd_and_exec($site_path, "git commit -am '$message'")) {
-    drush_log(dt('Git repository committed.'), 'ok');
-    drush_log(implode("\n", drush_shell_exec_output()), 'ok');
+  $ec = drush_shell_cd_and_exec($site_path, "git commit -am '$message'");
+
+  // drush_sell_cd_and_exec() returns TRUE on a exist status of 0, and
+  // FALSE on a non-zero exit status. Unfortunately, git exits with
+  // a status of 1 if there are no files to commit. This causes
+  // drush_shell_cd_and_exec() to return FALSE and we think the
+  // commit failed. So we have to resort to some hackery. We scan
+  // the output and count how many files don't starts with '#'.
+  // if the count is 1, then we have to assume there was nothing
+  // to commit.
+
+  // Assume nothing committed
+  drush_set_context('PROVISION_GIT_COMMITTED', 1);	
+
+  if (!$ec) {
+    $comments = 0;
+    $lines = 0;
+
+    foreach(drush_shell_exec_output() as $line) {
+      if ($line[0] == '#') {
+        $comments++;
+      }
+      else {
+        $lines++;
+      }
+    }
+    if ($comments > 0 && $lines == 1) {
+      drush_log(dt('Nothing to commit.'), 'ok');
+      drush_set_context('DRUSH_ERROR_CODE', DRUSH_SUCCESS);
+    }
+    else {
+      return drush_set_error('DRUSH_PROVISION_GIT_PULL_FAILED', dt("Git commit failed in !path.\nThe specific errors are below:\n!errors", array('!path' => $site_path, '!errors' => implode("\n", drush_shell_exec_output()))));
+    }
   }
   else {
-    return drush_set_error('DRUSH_PROVISION_GIT_PULL_FAILED', dt("Git commit failed in !path.\nThe specific errors are below:\n!errors", array('!path' => $site_path, '!errors' => implode("\n", drush_shell_exec_output()))));
+    drush_set_context('PROVISION_GIT_COMMITTED', 1);
+    drush_log(dt('Git repository committed.'), 'ok');
+    drush_log(implode("\n", drush_shell_exec_output()), 'ok');
   }
 }
 
