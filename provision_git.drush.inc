@@ -50,16 +50,22 @@ function provision_git_drush_command() {
 /**
  * Helper for verifying a repo
  */
-function provision_git_is_repo($site_path = NULL){
+function provision_git_is_repo($site_path = NULL, $silent = FALSE){
   if (!$site_path){  
     $site_path = d()->platform->root? d()->platform->root: d()->root;
   }
   
   //If shell returns False, this is not a git repo
   if (!drush_shell_cd_and_exec($site_path, 'git status')){
-    drush_set_error('DRUSH_PROVISION_GIT_PULL_FAILED', dt("Git repository not found in: !path", array('!path' => $site_path)));
+    if (!$silent) {
+      drush_set_error('DRUSH_PROVISION_GIT_PULL_FAILED', dt("Git repository not found in: !path", array('!path' => $site_path)));
+    }
+    return FALSE;
   } else {
-    drush_log(dt("Git repository found in !path", array('!path' => $site_path)), 'ok');
+    if (!$silent) {
+      drush_log(dt("Git repository found in !path", array('!path' => $site_path)), 'ok');
+    }
+    return TRUE;
   }
 }
 
