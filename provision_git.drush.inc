@@ -165,7 +165,7 @@ function drush_provision_git_commit() {
   $message = implode("\n", $message);
 
   //Execute git commit 
-  $ec = drush_shell_cd_and_exec($site_path, "git commit -am '$message'");
+  $ec = drush_shell_cd_and_exec($repo_path, "git commit -am '$message'");
 
   // drush_sell_cd_and_exec() returns TRUE on a exist status of 0, and
   // FALSE on a non-zero exit status. Unfortunately, git exits with
