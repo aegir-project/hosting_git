@@ -125,6 +125,14 @@ function drush_provision_git_pull() {
   if (drush_shell_cd_and_exec($repo_path, 'git pull --rebase')) {
     drush_log(dt('Git repository pulled.', array('!path' => $repo_path)), 'ok');
     drush_log(implode("\n", drush_shell_exec_output()), 'ok');
+
+    // Submodule in git? lets update those.
+    if (file_exists($repo_path . '/.gitmodules')) {
+      drush_shell_cd_and_exec($repo_path, 'git submodule init');
+      drush_log(implode("\n", drush_shell_exec_output()), 'ok');
+      drush_shell_cd_and_exec($repo_path, 'git submodule update');
+      drush_log(implode("\n", drush_shell_exec_output()), 'ok');
+    }
   }
   else {
     return drush_set_error('DRUSH_PROVISION_GIT_PULL_FAILED', dt("Git pull failed in !path.\nThe specific errors are below:\n!errors", array('!path' => $repo_path, '!errors' => implode("\n", drush_shell_exec_output()))));
@@ -216,6 +224,11 @@ function drush_provision_git_reset() {
   //Call git reset --hard which resets to the last pulled commit
   if (drush_shell_cd_and_exec($repo_path, 'git reset --hard')){
     drush_log(dt('Git repository reset.'), 'ok');
+    if (file_exists($repo_path . '/.gitmodules')) {
+      if (drush_shell_cd_and_exec($repo_path, 'git submodule foreach \'git reset --hard\'')){
+        drush_log(dt('Git submodules reset.'), 'ok');
+      }
+    }
   }
 }
 
