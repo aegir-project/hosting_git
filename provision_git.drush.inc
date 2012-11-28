@@ -65,6 +65,10 @@ function provision_git_is_repo($repo_path = NULL){
     drush_set_error('DRUSH_PROVISION_GIT_PULL_FAILED', dt("Git repository not found in: !path", array('!path' => $repo_path)));
     return FALSE;
   } else {
+     // Find the toplevel directory for this git repository
+    if (drush_shell_cd_and_exec($repo_path, 'git rev-parse --show-toplevel')){
+      $repo_path = implode("\n", drush_shell_exec_output());
+    }
     drush_log(dt("Git repository found in !path", array('!path' => $repo_path)), 'ok');
     drush_set_option('repo_path', $repo_path);
     return TRUE;
