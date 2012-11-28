@@ -10,7 +10,7 @@
  */
 function provision_git_drush_command() {
   $items['provision-git-pull'] = array(
-    'description' => 'Git pull a platform directory.',
+    'description' => 'Executes "git pull".',
     'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
     'options' => array(
       'reset' => 'Resets any working tree changes that would block a rebase.  USE WITH CAUTION',
@@ -18,12 +18,12 @@ function provision_git_drush_command() {
     'aliases' => array('pull'),
   );
   $items['provision-git-push'] = array(
-    'description' => 'Git push a platform directory.',
+    'description' => 'Executes "git push".',
     'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
     'aliases' => array('push'),
   );
   $items['provision-git-commit'] = array(
-    'description' => 'Commit all working copy files to the repository.',
+    'description' => 'Commits all added and changed files to the repository.',
     'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
     'aliases' => array('commit'),
     'options' => array(
@@ -31,12 +31,12 @@ function provision_git_drush_command() {
     ),
   );
   $items['provision-git-reset'] = array(
-    'description' => 'Git reset platform directory.',
+    'description' => 'Executes "git reset --hard".',
     'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
     'aliases' => array('reset'),
   );
   $items['provision-git-add'] = array(
-    'description' => 'Add files/directories to the Git index.',
+    'description' => 'Adds files and directories to be committed.',
     'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
     'aliases' => array('add'),
     'arguments' => array(
@@ -48,9 +48,10 @@ function provision_git_drush_command() {
 }
 
 /**
- * Helper for verifying a repo
+ * Helper for verifying the chosen path is a git repo.
  */
 function provision_git_is_repo($repo_path = NULL){
+  // If no path specified, use the site or platform path of the alias.
   if (!$repo_path){  
     if (d()->type === 'site') {
       $repo_path = d()->site_path? d()->site_path: d()->root;
@@ -172,7 +173,8 @@ function drush_provision_git_commit() {
   }
   $message = implode("\n", $message);
 
-  //Execute git commit 
+  // Execute git commit
+  // @TODO: Decide if we should we always assume "-a" (commit all changes)?
   $ec = drush_shell_cd_and_exec($repo_path, "git commit -am '$message'");
 
   // drush_sell_cd_and_exec() returns TRUE on a exist status of 0, and
@@ -215,7 +217,7 @@ function drush_provision_git_commit() {
 }
 
 /**
- * Implements the provision-git_pull command.
+ * Implements the provision-git-reset command.
  */
 function drush_provision_git_reset() {
   $repo_path = drush_get_option('repo_path');
@@ -233,7 +235,7 @@ function drush_provision_git_reset() {
 }
 
 /**
- * Implements the provision-git_add command.
+ * Implements the provision-git-add command.
  */
 function drush_provision_git_add($path = '') {
   $repo_path = drush_get_option('repo_path');
