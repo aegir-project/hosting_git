@@ -62,14 +62,10 @@ function provision_git_is_repo($repo_path = NULL){
   
   //If shell returns False, this is not a git repo
   if (!drush_shell_cd_and_exec($repo_path, 'git status')){
-    if (!$silent) {
-      drush_set_error('DRUSH_PROVISION_GIT_PULL_FAILED', dt("Git repository not found in: !path", array('!path' => $repo_path)));
-    }
+    drush_set_error('DRUSH_PROVISION_GIT_PULL_FAILED', dt("Git repository not found in: !path", array('!path' => $repo_path)));
     return FALSE;
   } else {
-    if (!$silent) {
-      drush_log(dt("Git repository found in !path", array('!path' => $repo_path)), 'ok');
-    }
+    drush_log(dt("Git repository found in !path", array('!path' => $repo_path)), 'ok');
     drush_set_option('repo_path', $repo_path);
     return TRUE;
   }
