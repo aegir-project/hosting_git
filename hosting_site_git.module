@@ -6,7 +6,7 @@
 function hosting_site_git_hosting_tasks() {
   $tasks = array();
 
-  $tasks['site']['git_pull'] = array(
+  $tasks['site']['git-pull'] = array(
     'title' => t('Git pull'),
     'description' => t('Runs a git pull on the current site when applicable.'),
   );
@@ -32,7 +32,7 @@ function hosting_site_git_hosting_tasks() {
  */
 function hosting_site_git_perm() {
   return array(
-    'create git_pull task',
+    'create git-pull task',
     'create git_clone task',
     'create git_checkout task',
   );

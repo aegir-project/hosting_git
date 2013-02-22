@@ -12,10 +12,7 @@
  * Implementation of hook_drush_command().
  */
 function hosting_site_git_drush_command() {
-  $items['provision-git_pull'] = array(
-    'description' => 'Git pull a site directory.',
-    'bootstrap' => DRUSH_BOOTSTRAP_DRUSH
-  );
+  // The provision-git_pull command has been replace with provision-git-pull from provision_git
 
   $items['provision-git_clone'] = array(
     'description' => 'Git clone a repo in a specified location.',
@@ -39,40 +36,22 @@ function hosting_site_git_drush_command() {
 }
 
 /**
- * Implements the provision-git_pull command.
+ * Implements drush_hook_pre_COMMAND().
  */
-function drush_hosting_site_git_provision_git_pull() {
-  $site_path = d()->site_path;
+function drush_hosting_site_git_pre_provision_git_pull() {
+  // We depend on the repo being reset first.
+  drush_set_option('reset', TRUE);
+}
 
-  // Check that the site is actually using Git
-  if (!is_dir($site_path . '/.git')) {
-    return drush_set_error('DRUSH_PROVISION_GIT_PULL_FAILED', dt("The site does not seem to be a valid Git clone in !path", array('!path' => $site_path)));
-  }
-
-  // Reset local modifications, git pull fails when there are local modifications in Git, wipe those first DANGEROUS!
-  drush_shell_cd_and_exec($site_path, 'git reset --hard');
-
-  // Pull
-  if (drush_shell_cd_and_exec($site_path, 'git pull')) {
-    drush_log(dt('Pulled from git on !path', array('!path' => $site_path)), 'ok');
-
-    // Submodule in git? lets update those.
-    if (file_exists($site_path . '/.gitmodules')) {
-      drush_shell_cd_and_exec($site_path, 'git submodule foreach \'git reset --hard\'');
-      drush_shell_cd_and_exec($site_path, 'git submodule init');
-      drush_shell_cd_and_exec($site_path, 'git submodule update');
-    }
-
+/**
+ * Implements drush_hook_post_COMMAND().
+ */
+function drush_hosting_site_git_post_provision_git_pull() {
     // Re-verify the site, this corrects the file permission when necessary
     $options = array();
     $target = d()->uri;
     provision_backend_invoke($target, 'provision-verify', array(), $options);
-  }
-  else {
-    return drush_set_error('DRUSH_PROVISION_GIT_PULL_FAILED', dt("Drush was unable to get Git pull in the site dir on !path.\nThe specific errors are below:\n!errors", array('!path' => $site_path, '!errors' => implode("\n", drush_shell_exec_output()))));
-  }
 }
-
 
 /**
  * Map values of site node into command line arguments
