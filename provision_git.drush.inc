@@ -50,24 +50,23 @@ function provision_git_drush_command() {
 /**
  * Helper for verifying the chosen path is a git repo.
  */
-function provision_git_is_repo($repo_path = NULL){
+function provision_git_is_repo($repo_path = NULL) {
   // If no path specified, use the site or platform path of the alias.
-  if (!$repo_path){  
+  if (!$repo_path) {
     if (d()->type === 'site') {
-      $repo_path = d()->site_path? d()->site_path: d()->root;
-    }
-    elseif (d()->type == 'platform') {
-      $repo_path = d()->platform->root? d()->platform->root: d()->root;
+      $repo_path = d()->site_path ? d()->site_path : d()->root;
+    } elseif (d()->type == 'platform') {
+      $repo_path = d()->platform->root ? d()->platform->root : d()->root;
     }
   }
-  
+
   //If shell returns False, this is not a git repo
-  if (!drush_shell_cd_and_exec($repo_path, 'git status')){
+  if (!drush_shell_cd_and_exec($repo_path, 'git status')) {
     drush_set_error('DRUSH_PROVISION_GIT_PULL_FAILED', dt("Git repository not found in: !path", array('!path' => $repo_path)));
     return FALSE;
   } else {
-     // Find the toplevel directory for this git repository
-    if (drush_shell_cd_and_exec($repo_path, 'git rev-parse --show-toplevel')){
+    // Find the toplevel directory for this git repository
+    if (drush_shell_cd_and_exec($repo_path, 'git rev-parse --show-toplevel')) {
       $repo_path = implode("\n", drush_shell_exec_output());
     }
     drush_log(dt("Git repository found in !path", array('!path' => $repo_path)), 'ok');
@@ -79,33 +78,35 @@ function provision_git_is_repo($repo_path = NULL){
 /**
  * Pre provision-git-pull hook
  */
-function drush_provision_pre_provision_git_pull(){
+function drush_provision_pre_provision_git_pull() {
   provision_git_is_repo();
 }
 
 /**
  * Pre provision-git-push hook
  */
-function drush_provision_pre_provision_git_push(){
+function drush_provision_pre_provision_git_push() {
   provision_git_is_repo();
 }
 
 /**
  * Pre provision-git-commit hook
  */
-function drush_provision_pre_provision_git_commit(){
+function drush_provision_pre_provision_git_commit() {
   provision_git_is_repo();
 }
+
 /**
  * Pre provision-git-reset hook
  */
-function drush_provision_pre_provision_git_reset(){
+function drush_provision_pre_provision_git_reset() {
   provision_git_is_repo();
 }
+
 /**
  * Pre provision-git-add hook
  */
-function drush_provision_pre_provision_git_add(){
+function drush_provision_pre_provision_git_add() {
   provision_git_is_repo();
 }
 
@@ -115,12 +116,12 @@ function drush_provision_pre_provision_git_add(){
 function drush_provision_git_pull() {
   $repo_path = drush_get_option('repo_path');
   $target = d()->name;
-  
+
   // Only git reset --hard if option says so.
-  if (drush_get_option('reset') == TRUE){
+  if (drush_get_option('reset') == TRUE) {
     provision_backend_invoke($target, 'provision-git-reset');
   }
-  
+
   // Execute git pull --rebase
   // @TODO: make rebase optional as well??  Haven't thought this through yet.
   if (drush_shell_cd_and_exec($repo_path, 'git pull --rebase')) {
@@ -146,7 +147,7 @@ function drush_provision_git_pull() {
 function drush_provision_git_push() {
   $repo_path = drush_get_option('repo_path');
   $target = d()->name;
-  
+
   //Execute git push
   if (drush_shell_cd_and_exec($repo_path, 'git push')) {
     drush_log(dt('Git repository pushed.'), 'ok');
@@ -163,12 +164,12 @@ function drush_provision_git_push() {
 function drush_provision_git_commit() {
   $repo_path = drush_get_option('repo_path');
   $target = d()->name;
-  
+
   //Generate commit message
   $message = array();
   $message[] = "Provision Git Commit: $target";
   $message[] = str_repeat('=', strlen($message[0]));
-  if (drush_get_option('message')){
+  if (drush_get_option('message')) {
     $message[] = drush_get_option('message');
   }
   $message = implode("\n", $message);
@@ -187,13 +188,13 @@ function drush_provision_git_commit() {
   // to commit.
 
   // Assume nothing committed
-  drush_set_context('PROVISION_GIT_COMMITTED', 0);	
+  drush_set_context('PROVISION_GIT_COMMITTED', 0);
 
   if (!$ec) {
     $comments = 0;
     $lines = 0;
 
-    foreach(drush_shell_exec_output() as $line) {
+    foreach (drush_shell_exec_output() as $line) {
       if ($line[0] == '#') {
         $comments++;
       }
@@ -222,12 +223,12 @@ function drush_provision_git_commit() {
 function drush_provision_git_reset() {
   $repo_path = drush_get_option('repo_path');
   $target = d()->name;
-  
+
   //Call git reset --hard which resets to the last pulled commit
-  if (drush_shell_cd_and_exec($repo_path, 'git reset --hard')){
+  if (drush_shell_cd_and_exec($repo_path, 'git reset --hard')) {
     drush_log(dt('Git repository reset.'), 'ok');
     if (file_exists($repo_path . '/.gitmodules')) {
-      if (drush_shell_cd_and_exec($repo_path, 'git submodule foreach \'git reset --hard\'')){
+      if (drush_shell_cd_and_exec($repo_path, 'git submodule foreach \'git reset --hard\'')) {
         drush_log(dt('Git submodules reset.'), 'ok');
       }
     }
@@ -243,7 +244,7 @@ function drush_provision_git_add($path = '') {
 
   // Call git add.
   // Seems to pass even if the git add failed
-  if (drush_shell_cd_and_exec($repo_path, "git add $path")){
-    drush_log(dt('Git add: '. $path), 'ok');
+  if (drush_shell_cd_and_exec($repo_path, "git add $path")) {
+    drush_log(dt('Git add: ' . $path), 'ok');
   }
 }
