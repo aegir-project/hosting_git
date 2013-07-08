@@ -60,7 +60,7 @@ function provision_git_is_repo($repo_path = NULL) {
     }
   }
 
-  //If shell returns False, this is not a git repo
+  // If shell returns False, this is not a git repo
   if (!drush_shell_cd_and_exec($repo_path, 'git status')) {
     drush_set_error('DRUSH_PROVISION_GIT_PULL_FAILED', dt("Git repository not found in: !path", array('!path' => $repo_path)));
     return FALSE;
@@ -224,7 +224,7 @@ function drush_provision_git_reset() {
   $repo_path = drush_get_option('repo_path');
   $target = d()->name;
 
-  //Call git reset --hard which resets to the last pulled commit
+  // Call git reset --hard which resets to the last pulled commit
   if (drush_shell_cd_and_exec($repo_path, 'git reset --hard')) {
     drush_log(dt('Git repository reset.'), 'ok');
     if (file_exists($repo_path . '/.gitmodules')) {
