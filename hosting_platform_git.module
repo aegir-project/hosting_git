@@ -10,29 +10,53 @@
  */
 function hosting_platform_git_form_alter(&$form, &$form_state, $form_id) {
   if ($form_id == 'platform_node_form') {
-    $form['git'] = array(
-      '#type' => 'fieldset',
-      '#tree' => TRUE,
-      '#title' => t('Deploy from Git'),
-      '#collapsible' => TRUE,
-      '#description' => t('You may deploy this platform from a Git repository. This functionality cannot be combined with a Makefile.'),
-      '#weight' => -1,
-    );
+    // If it's a new platform, show git form fields
+    if (is_null($form['nid']['#value'])) {
+      $form['git'] = array(
+        '#type' => 'fieldset',
+        '#tree' => TRUE,
+        '#title' => t('Deploy from Git'),
+        '#collapsible' => TRUE,
+        '#description' => t('You may deploy this platform from a Git repository. This functionality cannot be combined with a Makefile.'),
+        '#weight' => -1,
+      );
 
-    $form['git']['repo_url'] = array(
-      '#type' => 'textfield',
-      '#title' => 'Repository URL',
-      '#description' => t('The full URL that you would pass to <em>git clone</em>. Example:  git@github.com:username/project.git or https://github.com/username/project.git. Note that this repository must be accessible by the Aegir user.'),
-    );
+      $form['git']['repo_url'] = array(
+        '#type' => 'textfield',
+        '#title' => 'Repository URL',
+        '#description' => t('The full URL that you would pass to <em>git clone</em>. Example:  git@github.com:username/project.git or https://github.com/username/project.git. Note that this repository must be accessible by the Aegir user.'),
+      );
 
-    $form['git']['repo_branch'] = array(
-      '#type' => 'textfield',
-      '#title' => 'Branch or tag name',
-      '#description' => t('If a branch or tag name is not supplied, the platform will be deployed from <em>master</em>. This must match the Git branch or tag name exactly.')
-    );
+      $form['git']['repo_branch'] = array(
+        '#type' => 'textfield',
+        '#title' => 'Branch or tag name',
+        '#description' => t('If a branch or tag name is not supplied, the platform will be deployed from <em>master</em>. This must match the Git branch or tag name exactly.')
+      );
 
-    $form['#validate'][] = 'hosting_platform_git_node_form_validate';
-    $form['#submit'][] = 'hosting_platform_git_node_form_submit';
+      $form['#validate'][] = 'hosting_platform_git_node_form_validate';
+    }
+    // Otherwise, just show what we already have.
+    else {
+      if (isset($form['#node']->git['repo_url']) && $form['#node']->git['repo_url'] != 'NOOP') {
+        $form['info'] = array(
+          '#prefix' => '<div class="clear-block" id="hosting-site-edit-info">',
+          '#suffix' => '<br /></div>',
+          '#weight' => -10,
+        );
+
+        $form['info']['git_repo_url'] = array(
+          '#type' => 'item',
+          '#title' => t('Repo URL'),
+          '#value' => check_plain($form['#node']->git['repo_url']),
+        );
+
+        $form['info']['git_repo_branch'] = array(
+          '#type' => 'item',
+          '#title' => t('Repo branch/tag'),
+          '#value' => check_plain($form['#node']->git['repo_branch']),
+        );
+      }
+    }
   }
 }
 
@@ -53,7 +77,6 @@ function hosting_platform_git_nodeapi(&$node, $op) {
   if ($node->type == 'platform') {
     switch ($op) {
       case 'insert':
-      case 'update':
         $info = new stdClass();
         $info->nid = $node->nid;
         $info->git_repo_url = !empty($node->git['repo_url']) ? $node->git['repo_url'] : 'NOOP';
