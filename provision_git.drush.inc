@@ -88,7 +88,7 @@ function provision_git_is_repo($repo_path = NULL) {
     if (drush_shell_cd_and_exec($repo_path, 'git rev-parse --show-toplevel')) {
       $top_repo_path = implode("\n", drush_shell_exec_output());
     }
-    if (drush_get_option('force_repo_path_as_toplevel', FALSE) && $repo_path != $top_repo_path) {
+    if (drush_get_option('force_repo_path_as_toplevel', FALSE) && realpath($repo_path) != $top_repo_path) {
       drush_set_error('DRUSH_PROVISION_GIT_PULL_FAILED', dt("Path !path is not the toplevel dir of this Git repository.", array('!path' => $repo_path)));
       return FALSE;
     }
