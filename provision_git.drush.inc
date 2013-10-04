@@ -14,7 +14,7 @@ function provision_git_drush_command() {
     'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
     'options' => array(
       'reset' => 'Resets any working tree changes that would block a rebase.  USE WITH CAUTION',
-      'repo_path' => 'Optional: force a repository path. Defaults to try site, then platform dir.',
+      'repo_path' => 'Optional: force a repository path. Defaults to the site or platform dir.',
     ),
     'aliases' => array('pull'),
   );
@@ -22,6 +22,9 @@ function provision_git_drush_command() {
     'description' => 'Executes "git push".',
     'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
     'aliases' => array('push'),
+    'options' => array(
+      'repo_path' => 'Optional: force a repository path. Defaults to the site or platform dir.',
+    ),
   );
   $items['provision-git-commit'] = array(
     'description' => 'Commits all added and changed files to the repository.',
@@ -29,12 +32,16 @@ function provision_git_drush_command() {
     'aliases' => array('commit'),
     'options' => array(
       'message' => 'The message to attach to the commit.',
+      'repo_path' => 'Optional: force a repository path. Defaults to the site or platform dir.',
     ),
   );
   $items['provision-git-reset'] = array(
     'description' => 'Executes "git reset --hard".',
     'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
     'aliases' => array('reset'),
+    'options' => array(
+      'repo_path' => 'Optional: force a repository path. Defaults to the site or platform dir.',
+    ),
   );
   $items['provision-git-add'] = array(
     'description' => 'Adds files and directories to be committed.',
@@ -44,6 +51,9 @@ function provision_git_drush_command() {
       'path' => 'Path to the file or folders you would like to add.',
     ),
     'required-arguments' => TRUE,
+    'options' => array(
+      'repo_path' => 'Optional: force a repository path. Defaults to the site or platform dir.',
+    ),
   );
   return $items;
 }
