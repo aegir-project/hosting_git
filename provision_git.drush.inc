@@ -14,7 +14,7 @@ function provision_git_drush_command() {
     'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
     'options' => array(
       'reset' => 'Resets any working tree changes that would block a rebase.  USE WITH CAUTION',
-      'repo_path' => 'Optional: force a repo path.. defaults to try site, then platform dir.',
+      'repo_path' => 'Optional: force a repository path. Defaults to try site, then platform dir.',
     ),
     'aliases' => array('pull'),
   );
