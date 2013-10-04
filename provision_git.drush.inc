@@ -15,6 +15,7 @@ function provision_git_drush_command() {
     'options' => array(
       'reset' => 'Resets any working tree changes that would block a rebase.  USE WITH CAUTION',
       'repo_path' => 'Optional: force a repository path. Defaults to the site or platform dir.',
+      'force_repo_path_as_toplevel' => 'Stop Git from looking in parent directories. Defaults to FALSE.',
     ),
     'aliases' => array('pull'),
   );
@@ -24,6 +25,7 @@ function provision_git_drush_command() {
     'aliases' => array('push'),
     'options' => array(
       'repo_path' => 'Optional: force a repository path. Defaults to the site or platform dir.',
+      'force_repo_path_as_toplevel' => 'Stop Git from looking in parent directories. Defaults to FALSE.',
     ),
   );
   $items['provision-git-commit'] = array(
@@ -33,6 +35,7 @@ function provision_git_drush_command() {
     'options' => array(
       'message' => 'The message to attach to the commit.',
       'repo_path' => 'Optional: force a repository path. Defaults to the site or platform dir.',
+      'force_repo_path_as_toplevel' => 'Stop Git from looking in parent directories. Defaults to FALSE.',
     ),
   );
   $items['provision-git-reset'] = array(
@@ -41,6 +44,7 @@ function provision_git_drush_command() {
     'aliases' => array('reset'),
     'options' => array(
       'repo_path' => 'Optional: force a repository path. Defaults to the site or platform dir.',
+      'force_repo_path_as_toplevel' => 'Stop Git from looking in parent directories. Defaults to FALSE.',
     ),
   );
   $items['provision-git-add'] = array(
@@ -53,6 +57,7 @@ function provision_git_drush_command() {
     'required-arguments' => TRUE,
     'options' => array(
       'repo_path' => 'Optional: force a repository path. Defaults to the site or platform dir.',
+      'force_repo_path_as_toplevel' => 'Stop Git from looking in parent directories. Defaults to FALSE.',
     ),
   );
   return $items;
@@ -81,10 +86,14 @@ function provision_git_is_repo($repo_path = NULL) {
   } else {
     // Find the toplevel directory for this git repository
     if (drush_shell_cd_and_exec($repo_path, 'git rev-parse --show-toplevel')) {
-      $repo_path = implode("\n", drush_shell_exec_output());
+      $top_repo_path = implode("\n", drush_shell_exec_output());
     }
-    drush_log(dt("Git repository found in !path", array('!path' => $repo_path)), 'ok');
-    drush_set_option('repo_path', $repo_path);
+    if (drush_get_option('force_repo_path_as_toplevel', FALSE) && $repo_path != $top_repo_path) {
+      drush_set_error('DRUSH_PROVISION_GIT_PULL_FAILED', dt("Path !path is not the toplevel dir of this Git repository.", array('!path' => $repo_path)));
+      return FALSE;
+    }
+    drush_log(dt("Git repository found in !path", array('!path' => $top_repo_path)), 'ok');
+    drush_set_option('repo_path', $top_repo_path);
     return TRUE;
   }
 }
