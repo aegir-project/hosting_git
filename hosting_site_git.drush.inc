@@ -56,8 +56,9 @@ function drush_hosting_site_git_pre_hosting_task($task) {
     $task->options['reset'] = TRUE;
   }
 
-  // Provide the repository path, provision_git could otherwise fallback to the platform dir.
-  $task->options['repo_path'] = d()->site_path;
+  // Force the repository path, provision_git could otherwise look up the tree and find a platform dir under git control.
+  $task->options['force_repo_path_as_toplevel'] = TRUE;
+
 
   // Pass the dialog entries to the drush provision script
   if ($task->task_type == 'git_clone') {
