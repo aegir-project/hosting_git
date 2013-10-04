@@ -14,6 +14,7 @@ function provision_git_drush_command() {
     'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
     'options' => array(
       'reset' => 'Resets any working tree changes that would block a rebase.  USE WITH CAUTION',
+      'repo_path' => 'Optional: force a repository path. Defaults to try site, then platform dir.',
     ),
     'aliases' => array('pull'),
   );
@@ -52,6 +53,9 @@ function provision_git_drush_command() {
  */
 function provision_git_is_repo($repo_path = NULL) {
   // If no path specified, use the site or platform path of the alias.
+  if (!$repo_path) {
+    $repo_path = drush_get_option('repo_path');
+  }
   if (!$repo_path) {
     if (d()->type === 'site') {
       $repo_path = d()->site_path ? d()->site_path : d()->root;
