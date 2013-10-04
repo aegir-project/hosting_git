@@ -8,7 +8,8 @@ function hosting_site_git_hosting_tasks() {
 
   $tasks['site']['git-pull'] = array(
     'title' => t('Git pull'),
-    'description' => t('Runs a git pull on the current site when applicable.'),
+    'description' => t('Runs a git pull on the current site.'),
+    'dialog' => TRUE
   );
 
   $tasks['site']['git_clone'] = array(
@@ -38,6 +39,21 @@ function hosting_site_git_perm() {
   );
 }
 
+/**
+ * Implementation of hook_form()
+ */
+function hosting_task_git_pull_form($node) {
+
+  $form['reset_hard'] = array(
+    '#title' => t('Force: Reset --hard before pulling?'),
+    '#description' => t("Uncommitted changes will be lost."),
+    '#type' => 'checkbox',
+    '#weight' => '-1',
+    '#default_value' => TRUE,
+  );
+
+  return $form;
+}
 /**
  * Implementation of hook_form()
  */

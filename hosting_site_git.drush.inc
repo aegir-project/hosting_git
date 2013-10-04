@@ -36,14 +36,6 @@ function hosting_site_git_drush_command() {
 }
 
 /**
- * Implements drush_hook_pre_COMMAND().
- */
-function drush_hosting_site_git_pre_provision_git_pull() {
-  // We depend on the repo being reset first.
-  drush_set_option('reset', TRUE);
-}
-
-/**
  * Implements drush_hook_post_COMMAND().
  */
 function drush_hosting_site_git_post_provision_git_pull() {
@@ -58,6 +50,11 @@ function drush_hosting_site_git_post_provision_git_pull() {
  */
 function drush_hosting_site_git_pre_hosting_task($task) {
   $task =& drush_get_context('HOSTING_TASK');
+
+  if ($task->task_args['reset_hard'] == TRUE) {
+    // Pass the option provision_git expects.
+    $task->options['reset'] = TRUE;
+  }
 
   // Pass the dialog entries to the drush provision script
   if ($task->task_type == 'git_clone') {
