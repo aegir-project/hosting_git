@@ -14,7 +14,8 @@ function provision_git_drush_command() {
     'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
     'options' => array(
       'reset' => 'Resets any working tree changes that would block a rebase.  USE WITH CAUTION',
-      'repo_path' => 'Optional: force a repository path. Defaults to try site, then platform dir.',
+      'repo_path' => 'Optional: force a repository path. Defaults to the site or platform dir.',
+      'force_repo_path_as_toplevel' => 'Stop Git from looking in parent directories. Defaults to FALSE.',
     ),
     'aliases' => array('pull'),
   );
@@ -22,6 +23,10 @@ function provision_git_drush_command() {
     'description' => 'Executes "git push".',
     'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
     'aliases' => array('push'),
+    'options' => array(
+      'repo_path' => 'Optional: force a repository path. Defaults to the site or platform dir.',
+      'force_repo_path_as_toplevel' => 'Stop Git from looking in parent directories. Defaults to FALSE.',
+    ),
   );
   $items['provision-git-commit'] = array(
     'description' => 'Commits all added and changed files to the repository.',
@@ -29,12 +34,18 @@ function provision_git_drush_command() {
     'aliases' => array('commit'),
     'options' => array(
       'message' => 'The message to attach to the commit.',
+      'repo_path' => 'Optional: force a repository path. Defaults to the site or platform dir.',
+      'force_repo_path_as_toplevel' => 'Stop Git from looking in parent directories. Defaults to FALSE.',
     ),
   );
   $items['provision-git-reset'] = array(
     'description' => 'Executes "git reset --hard".',
     'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
     'aliases' => array('reset'),
+    'options' => array(
+      'repo_path' => 'Optional: force a repository path. Defaults to the site or platform dir.',
+      'force_repo_path_as_toplevel' => 'Stop Git from looking in parent directories. Defaults to FALSE.',
+    ),
   );
   $items['provision-git-add'] = array(
     'description' => 'Adds files and directories to be committed.',
@@ -44,6 +55,10 @@ function provision_git_drush_command() {
       'path' => 'Path to the file or folders you would like to add.',
     ),
     'required-arguments' => TRUE,
+    'options' => array(
+      'repo_path' => 'Optional: force a repository path. Defaults to the site or platform dir.',
+      'force_repo_path_as_toplevel' => 'Stop Git from looking in parent directories. Defaults to FALSE.',
+    ),
   );
   return $items;
 }
@@ -63,18 +78,21 @@ function provision_git_is_repo($repo_path = NULL) {
       $repo_path = d()->platform->root ? d()->platform->root : d()->root;
     }
   }
-
-  //If shell returns False, this is not a git repo
+  // If shell returns False, this is not a git repo
   if (!drush_shell_cd_and_exec($repo_path, 'git status')) {
     drush_set_error('DRUSH_PROVISION_GIT_PULL_FAILED', dt("Git repository not found in: !path", array('!path' => $repo_path)));
     return FALSE;
   } else {
     // Find the toplevel directory for this git repository
     if (drush_shell_cd_and_exec($repo_path, 'git rev-parse --show-toplevel')) {
-      $repo_path = implode("\n", drush_shell_exec_output());
+      $top_repo_path = implode("\n", drush_shell_exec_output());
     }
-    drush_log(dt("Git repository found in !path", array('!path' => $repo_path)), 'ok');
-    drush_set_option('repo_path', $repo_path);
+    if (drush_get_option('force_repo_path_as_toplevel', FALSE) && realpath($repo_path) != $top_repo_path) {
+      drush_set_error('DRUSH_PROVISION_GIT_PULL_FAILED', dt("Path !path is not the toplevel dir of this Git repository.", array('!path' => $repo_path)));
+      return FALSE;
+    }
+    drush_log(dt("Git repository found in !path", array('!path' => $top_repo_path)), 'ok');
+    drush_set_option('repo_path', $top_repo_path);
     return TRUE;
   }
 }
@@ -228,7 +246,7 @@ function drush_provision_git_reset() {
   $repo_path = drush_get_option('repo_path');
   $target = d()->name;
 
-  //Call git reset --hard which resets to the last pulled commit
+  // Call git reset --hard which resets to the last pulled commit
   if (drush_shell_cd_and_exec($repo_path, 'git reset --hard')) {
     drush_log(dt('Git repository reset.'), 'ok');
     if (file_exists($repo_path . '/.gitmodules')) {
