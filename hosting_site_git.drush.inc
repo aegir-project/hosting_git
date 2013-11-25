@@ -51,7 +51,12 @@ function drush_hosting_site_git_post_provision_git_pull() {
 function drush_hosting_site_git_pre_hosting_task($task) {
   $task =& drush_get_context('HOSTING_TASK');
 
-  if ($task->task_args['reset_hard'] == TRUE) {
+  // Only work on selected task types.
+  if (!in_array($task->task_type, array('git-pull', 'git_clone', 'git_checkout'))) {
+    return;
+  }
+
+  if (!empty($task->task_args) && $task->task_args['reset_hard'] == TRUE) {
     // Pass the option provision_git expects.
     $task->options['reset'] = TRUE;
   }
