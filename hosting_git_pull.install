@@ -7,8 +7,8 @@
 /**
  * Implements hook_schema().
  */
-function devshop_pull_schema() {
-  $schema['hosting_devshop_pull_projects'] = array(
+function hosting_git_pull_schema() {
+  $schema['hosting_hosting_git_pull_projects'] = array(
     'fields' => array(
       'project_nid' => array(
         'type' => 'int',
@@ -38,7 +38,7 @@ function devshop_pull_schema() {
     ),
     'primary key' => array('project_nid'),
   );
-  $schema['hosting_devshop_pull_platforms'] = array(
+  $schema['hosting_hosting_git_pull_platforms'] = array(
     'fields' => array(
       'project_nid' => array(
         'type' => 'int',
@@ -75,44 +75,44 @@ function devshop_pull_schema() {
 /**
  * Implementation of hook_install().
  */
-function devshop_pull_install() {
+function hosting_git_pull_install() {
   // Create tables.
-  drupal_install_schema('devshop_pull');
+  drupal_install_schema('hosting_git_pull');
 }
 
 /**
  * Implementation of hook_uninstall().
  */
-function devshop_pull_uninstall() {
+function hosting_git_pull_uninstall() {
   // Create tables.
-  drupal_uninstall_schema('devshop_pull');
+  drupal_uninstall_schema('hosting_git_pull');
 }
 
 /**
- * no-op: code fixed in devshop_pull_update_6201()
+ * no-op: code fixed in hosting_git_pull_update_6201()
  */
-function devshop_pull_update_6000(){
+function hosting_git_pull_update_6000(){
   $ret = array();
   return $ret;
 }
 /**
- * Add last_pull_ip column to our hosting_devshop_pull_projects table.
+ * Add last_pull_ip column to our hosting_hosting_git_pull_projects table.
  */
-function devshop_pull_update_6001(){
+function hosting_git_pull_update_6001(){
   $ret = array();
-  db_add_field($ret, 'hosting_devshop_pull_projects', 'last_pull_ip', array('type' => 'varchar', 'not null' => TRUE, 'default' => '', 'length' => 15));
+  db_add_field($ret, 'hosting_hosting_git_pull_projects', 'last_pull_ip', array('type' => 'varchar', 'not null' => TRUE, 'default' => '', 'length' => 15));
   return $ret;
 }
 
 /**
- * Add last_pull_ip column to our hosting_devshop_pull_platforms table.
+ * Add last_pull_ip column to our hosting_hosting_git_pull_platforms table.
  *
- * This was broken in devshop_pull_update_6000() and mistakenly removed completely instead of fixed.
+ * This was broken in hosting_git_pull_update_6000() and mistakenly removed completely instead of fixed.
  */
-function devshop_pull_update_6201() {
+function hosting_git_pull_update_6201() {
   $ret = array();
-  if (!db_column_exists('hosting_devshop_pull_platforms', 'last_pull_ip')) {
-    db_add_field($ret, 'hosting_devshop_pull_platforms', 'last_pull_ip', array('type' => 'varchar', 'not null' => TRUE, 'default' => '', 'length' => 15));
+  if (!db_column_exists('hosting_hosting_git_pull_platforms', 'last_pull_ip')) {
+    db_add_field($ret, 'hosting_hosting_git_pull_platforms', 'last_pull_ip', array('type' => 'varchar', 'not null' => TRUE, 'default' => '', 'length' => 15));
   }
   return $ret;
 }
