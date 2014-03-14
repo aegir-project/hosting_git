@@ -21,3 +21,45 @@ function hosting_git_update_6200() {
   return $ret;
 }
 
+
+/**
+ * Implements hook_schema().
+ */
+function hosting_git_schema() {
+  $schema = array();
+
+  $schema['hosting_platform_git'] = array(
+    'description' => t('A mapping between platform node IDs and Git data'),
+    'fields' => array(
+      'nid' => array(
+        'description' => 'The platform nid from the {node} table.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'git_repo_url' => array(
+        'description' => 'The URL given to the git repository',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'git_repo_branch' => array(
+        'description' => 'The git branch given',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'git_allow_pull_task' => array(
+        'description' => 'Whether the git-pull task can be performed on this platform.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('nid'),
+  );
+
+  return $schema;
+}
+

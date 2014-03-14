@@ -1,4 +1,0 @@
-name = Hosting Platform Git
-description = Allows deploying platforms from Git
-core = 6.x
-package = Hosting

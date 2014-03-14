@@ -23,11 +23,23 @@ function hosting_git_hosting_tasks() {
     'description' => t('Perform a git checkout'),
     'dialog' => TRUE
   );
-
+  
+    $tasks['platform']['git-pull'] = array(
+    'title' => t('Git pull'),
+    'description' => t('Runs a git pull on the current platform.'),
+    'access callback' => 'hosting_git_access_platform_pull',
+    'dialog' => TRUE
+  );
 
   return $tasks;
 }
 
+function hosting_git_access_platform_pull($node) {
+  if (user_access('create platform git-pull task') && isset($node->git['git_allow_pull_task'])) {
+    return $node->git['git_allow_pull_task'];
+  }
+  return TRUE;
+}
 /**
  * Implementation of hook_perm()
  */
@@ -36,7 +48,112 @@ function hosting_git_perm() {
     'create git-pull task',
     'create git_clone task',
     'create git_checkout task',
+    'create platform git-pull task',
   );
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function hosting_git_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id == 'platform_node_form') {
+    $form['git'] = array(
+      '#type' => 'fieldset',
+      '#tree' => TRUE,
+      '#title' => t('Deploy from Git'),
+      '#collapsible' => TRUE,
+      '#description' => t('You may deploy this platform from a Git repository. This functionality cannot be combined with a Makefile.'),
+      '#weight' => -1,
+    );
+
+    $form['git']['repo_url'] = array(
+      '#type' => 'textfield',
+      '#title' => 'Repository URL',
+      '#description' => t('The full URL that you would pass to <em>git clone</em>. Example:  git@github.com:username/project.git or https://github.com/username/project.git. Note that this repository must be accessible by the Aegir user.'),
+    );
+
+    $form['git']['repo_branch'] = array(
+      '#type' => 'textfield',
+      '#title' => 'Branch or tag name',
+      '#description' => t('If a branch or tag name is not supplied, the platform will be deployed from <em>master</em>. This must match the Git branch or tag name exactly.')
+    );
+    // repo_url and branch are currently not editable
+    if (0 && !is_null($form['nid']['#value'])) {
+      $form['git']['repo_url']['#disabled'] = TRUE;
+      $form['git']['repo_branch']['#disabled'] = TRUE;
+      $form['git']['repo_url']['#description'] = t('Only available on node creation');
+      $form['git']['repo_branch']['#description'] = $form['git']['repo_url']['#description'];
+    }
+
+    $form['git']['git_allow_pull_task'] = array(
+      '#type' => 'checkbox',
+      '#title' => 'Allow git pull',
+      '#description' => t('Allow the use of a git pull task to update the platform'),
+      '#default_value' => $form['#node']->git['git_allow_pull_task'],
+    );
+
+    $form['#validate'][] = 'hosting_platform_git_node_form_validate';
+  }
+
+  }
+
+/**
+ * Validation callback for platform node form.
+ */
+function hosting_platform_git_node_form_validate($form, &$form_state) {
+  if (!empty($form_state['values']['git']['repo_url']) && !empty($form_state['values']['makefile'])) {
+    form_set_error('makefile', t('Git deployment and Makefile deployment cannot be combined'));
+  }
+}
+
+/**
+ * Implements hook_nodeapi().
+ */
+function hosting_git_nodeapi(&$node, $op) {
+  if ($node->type == 'platform') {
+    switch ($op) {
+      case 'update':
+        db_query('UPDATE {hosting_platform_git} SET git_allow_pull_task=%d WHERE nid = %d', $node->git['git_allow_pull_task'], $node->nid);
+        break;
+      case 'insert':
+        $info = new stdClass();
+        $info->nid = $node->nid;
+        $info->git_repo_url = !empty($node->git['repo_url']) ? $node->git['repo_url'] : 'NOOP';
+        $info->git_repo_branch = !empty($node->git['repo_branch']) ? $node->git['repo_branch'] : 'master';
+        $info->git_repo_allow_pull = !empty($node->git['git_allow_pull_task']) ? $node->git['git_allow_pull_task'] : FALSE;
+        if ($node->is_new) {
+          drupal_write_record('hosting_platform_git', $info);
+        }
+        else {
+          drupal_write_record('hosting_platform_git', $info, 'nid');
+        }
+        break;
+      case 'load':
+        if ($result = db_fetch_object(db_query('SELECT * FROM {hosting_platform_git} WHERE nid = %d', $node->nid))) {
+          $node->git = array();
+          $node->git['repo_url'] = $result->git_repo_url;
+          $node->git['repo_branch'] = $result->git_repo_branch;
+          $node->git['git_allow_pull_task'] = $result->git_allow_pull_task;
+        }
+        break;
+      case 'view':
+        if (isset($node->git['repo_url']) && $node->git['repo_url'] != 'NOOP') {
+          $node->content['info']['git_repo_url'] = array(
+            '#type' => 'item',
+            '#title' => t('Repository URL'),
+            '#weight' => 100,
+            '#value' => check_plain($node->git['repo_url']),
+          );
+          $node->content['info']['git_repo_branch'] = array(
+            '#type' => 'item',
+            '#title' => t('Repository branch/tag'),
+            '#weight' => 100,
+            '#value' => check_plain($node->git['repo_branch']),
+          );
+        }
+        break;
+    }
+  }
 }
 
 /**
