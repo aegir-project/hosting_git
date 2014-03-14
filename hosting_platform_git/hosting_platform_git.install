@@ -1,0 +1,55 @@
+<?php
+
+/**
+ * @file
+ * Creates database table for platform/git integration
+ */
+
+/**
+ * Implements hook_install().
+ */
+function hosting_platform_git_install() {
+  drupal_install_schema('hosting_platform_git');
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function hosting_platform_git_uninstall() {
+  // drupal_uninstall_schema('hosting_platform_git');
+}
+
+/**
+ * Implements hook_schema().
+ */
+function hosting_platform_git_schema() {
+  $schema = array();
+
+  $schema['hosting_platform_git'] = array(
+    'description' => t('A mapping between platform node IDs and Git data'),
+    'fields' => array(
+      'nid' => array(
+        'description' => 'The platform nid from the {node} table.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'git_repo_url' => array(
+        'description' => 'The URL given to the git repository',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'git_repo_branch' => array(
+        'description' => 'The git branch given',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+    ),
+    'primary key' => array('nid'),
+  );
+
+  return $schema;
+}
