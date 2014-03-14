@@ -1,0 +1,23 @@
+<?php
+
+/**
+ * Implements hook_update_N().
+ *
+ * Rename task git_pul to use dashes
+ *
+ * We re-named 'git_pull' tasks to 'git-pull', to work with provision_git
+ */
+function hosting_site_git_update_6200() {
+  $ret = array();
+
+  $replacements = array(
+    'git_pull' => 'git-pull',
+  );
+
+  foreach ($replacements as $old => $new) {
+    db_query("UPDATE {hosting_task} SET task_type = '%s' where task_type = '%s'", $new, $old);
+  }
+
+  return $ret;
+}
+
