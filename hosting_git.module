@@ -1,4 +1,31 @@
 <?php
+/**
+ * @file hosting_git_pull.module
+ *
+ * Provides a Hosting Queue and a URL callback for remote services to ping, in
+ * order to trigger a Pull Code task.
+ *
+ * Used to keep a dev server up to date with the commits of projects.
+ *
+ */
+
+define('HOSTING_GIT_PULL_DISABLED', 0);
+define('HOSTING_GIT_PULL_QUEUE', 1);
+define('HOSTING_GIT_PULL_CALLBACK', 2);
+
+define('HOSTING_GIT_PULL_STATUS_OK', 1);
+define('HOSTING_GIT_PULL_STATUS_ACCESS_DENIED', 2);
+define('HOSTING_GIT_PULL_STATUS_INVALID_CODE', 3);
+
+// These are github's Webhook callback IPs.
+// This list grows occaisonally, update it as needed.
+define('HOSTING_GIT_PULL_DEFAULT_ALLOWED_IPS',"
+204.232.175.64/27
+192.30.252.0/22
+");
+
+// The base URL to use for the Post Commit callback.
+define('HOSTING_GIT_PULL_CALLBACK_URL', 'git/pull');
 
 /**
  * Implementation of hook_hosting_tasks
@@ -53,6 +80,29 @@ function hosting_git_perm() {
 }
 
 /**
+ * Implements hook_menu()
+ */
+function hosting_git_pull_menu() {
+  $items['admin/hosting/git/pull'] = array(
+    'title' => 'Pull',
+    'description' => 'Configure Pull Code URL callback ',
+    'file' => 'hosting_git.admin.inc',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('hosting_git_pull_settings'),
+    'access arguments' => array('administer hosting settings'),
+    'tab_parent' => 'admin/hosting/git',
+    'type' => MENU_LOCAL_TASK,
+  );
+  $items[HOSTING_GIT_PULL_CALLBACK_URL] = array(
+    'page callback' => 'hosting_git_pull_callback',
+    'access callback' => TRUE,
+    'file' => 'hosting_git_pull.inc',
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+/**
  * Implements hook_form_alter().
  */
 function hosting_git_form_alter(&$form, &$form_state, $form_id) {
@@ -94,8 +144,61 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
 
     $form['#validate'][] = 'hosting_platform_git_node_form_validate';
   }
+  if ($form_id == 'site_node_form') {
+    // Get node
+    $node = $form['#node'];
 
+    // Get default value
+    if (is_null($node->pull_method)) {
+      $node->pull_method = HOSTING_GIT_PULL_DISABLED;
+    }
+
+    //All settings git pull in project page
+    $form['git_settings'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Git Settings'),
+    );
+
+    $form['git_settings']['pull_method'] = array(
+      '#title' => 'Automatic Git Pull Method',
+      '#type' => 'radios',
+      '#description' => t('Choose the method of regularly calling "Pull Code". See !link to configure the queue. See !link2 to configure URL Callback.', array(
+        '!link' => l(t('Hosting > Queues'), 'admin/hosting/queues'),
+        '!link2' => l(t('Hosting > DevShop Pull Settings'), 'admin/hosting/hosting_git_pull')
+      )),
+      '#default_value' => $node->pull_method,
+      '#options' => array(
+        HOSTING_GIT_PULL_DISABLED => t('Pull disabled.'),
+        HOSTING_GIT_PULL_QUEUE => t('Pull on queue (every minute).'),
+        HOSTING_GIT_PULL_CALLBACK => t('Pull on URL Callback (ie. GitHub Webhook)'),
+      ),
+    );
+    module_load_include('inc', 'hosting_git_pull');
+    $form['git_settings']['pull_url'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Pull Trigger URL'),
+      '#value' => _hosting_git_pull_callback_url($node),
+      '#description' => t('Configure your repo to hit this URL when it receives a commit.'),
+      '#attributes' => array(
+        'onclick' => 'this.select()',
+      ),
+    );
+
+    // @TODO: is there a better way to save certain values? We lose data without these.
+    $form['git_settings']['last_pull'] = array(
+      '#type' => 'value',
+      '#value' => $node->last_pull,
+    );
+    $form['git_settings']['last_pull_status'] = array(
+      '#type' => 'value',
+      '#value' => $node->last_pull_status,
+    );
+    $form['git_settings']['last_pull_ip'] = array(
+      '#type' => 'value',
+      '#value' => $node->last_pull_ip,
+    );
   }
+}
 
 /**
  * Validation callback for platform node form.
@@ -298,6 +401,64 @@ function hosting_task_git_checkout_form_validate($form, &$form_state) {
   // Pass the value from location to the parameters location
   $form_state['values']['parameters']['location'] = $form_state['values']['location'];
 }
+
+/**
+ * Implements hook_hosting_queues()
+ */
+function hosting_git_pull_hosting_queues() {
+  $items['pull'] = array(
+    'type' => 'batch',
+    'name' => t('Pull queue'),
+    'description' => t('Run git pull on projects configured to do so.'),
+    'total_items' => _hosting_git_pullqueue_get_platforms(10),
+    'frequency' => strtotime("1 minute", 0),
+    'singular' => t('project'),
+    'plural' => t('projects'),
+  );
+  return $items;
+}
+/**
+ * Implements hosting_QUEUE_TYPE_queue().
+ */
+function hosting_pull_queue($count) {
+
+  $result = db_query("SELECT d.*  FROM {hosting_hosting_git_project_object} dpo LEFT JOIN {hosting_hosting_git_pull_projects}  d ON dpo.project_nid=d.project_nid WHERE d.pull_method = %d AND dpo.object_type='platform' ORDER BY d.last_pull ASC, dpo.object_nid ASC", array(HOSTING_GIT_PULL_QUEUE));
+
+  while ($project = db_fetch_object($result)) {
+    $project_node = node_load($project->project_nid);
+
+    // Create the hosting task
+    // @TODO: We maybe don't need to pass args here? its saved in the context
+    // Check for environments set to pull
+    $environments_to_pull = array();
+    foreach ($project_node->settings as $env => $settings) {
+      if ($settings['pull_enabled']) {
+        $environments_to_pull[] = $env;
+      }
+    }
+    $args = array();
+    $args['environments'] = implode(' ', $environments_to_pull);
+    hosting_add_task($project_node->nid, 'devshop-pull', $args);
+
+    module_invoke_all('hosting_git_pull', $project_node);
+  }
+}
+
+/**
+ * Get a number of platforms that have their pull queue enabled.
+ *
+ * @param $limit
+ *   Limit to a maximum of this number of platforms.
+ * @return
+ *   An array of site nodes that have a pull queue enabled.
+ *
+ * @TODO Convert to check pull queue sites.
+ */
+function _hosting_git_pullqueue_get_platforms($limit = 5) {
+  $result = db_query("SELECT COUNT(dpo.object_nid) FROM {hosting_hosting_git_project_object} dpo LEFT JOIN {hosting_hosting_git_pull_projects}  d ON dpo.project_nid=d.project_nid WHERE d.pull_method = %d  AND dpo.object_type='platform' ORDER BY d.last_pull ASC, dpo.object_nid ASC", array(HOSTING_GIT_PULL_QUEUE));
+  return db_result($result);
+}
+
 
 /* Private functions */
 

@@ -59,6 +59,38 @@ function hosting_git_schema() {
     ),
     'primary key' => array('nid'),
   );
+  
+  $schema['hosting_git_pull'] = array(
+    'fields' => array(
+      'nid' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'pull_method' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Either DISABLED, QUEUE or CALLBACK',
+       ),
+      'last_pull' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'last_pull_status' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'last_pull_ip' => array(
+        'type' => 'varchar',
+        'length' => 15,
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('nid'),
+  );
 
   return $schema;
 }

@@ -1,17 +1,9 @@
 <?php
 
 /**
- * Page callback for the settings page.
- */
-function hosting_git_pull_settings_page(){
-  $output .= drupal_get_form('hosting_git_pull_settings_form');
-  return $output;
-}
-
-/**
  * General settings form.
  */
-function hosting_git_pull_settings_form() {
+function hosting_git_settings_form() {
   $form['hosting_git_pull_ip_acl'] = array(
     '#type' => 'textarea',
     '#title' => t('Control Access by IP'),
