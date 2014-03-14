@@ -47,9 +47,24 @@ function hosting_platform_git_schema() {
         'not null' => TRUE,
         'default' => '',
       ),
+      'git_allow_pull_task' => array(
+        'description' => 'Whether the git-pull task can be performed on this platform.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
     ),
     'primary key' => array('nid'),
   );
 
   return $schema;
+}
+
+/**
+ * Add a field for git_allow_pull_task
+ */
+function hosting_platform_git_update_6101() {
+  $ret = array();
+  db_add_field($ret, 'hosting_platform_git', 'git_allow_pull_task', array('type' => 'int', 'not null' => TRUE, 'default' => 0));
+  return $ret;
 }
