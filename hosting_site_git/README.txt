@@ -14,8 +14,8 @@ Installation
 ------------
 
 1. Install as any other Drupal module into your hostmaster site.
-2. The file hosting_site_git.drush.inc should be copied/linked to the drush installation.
-An easy way is to create a symlink in ~/.drush/ to e.g. /var/aegir/clients/admin/hostmaster.example.com/modules/hosting_site_git/.
+2. The file hosting_git.drush.inc should be copied/linked to the drush installation.
+An easy way is to create a symlink in ~/.drush/ to e.g. /var/aegir/clients/admin/hostmaster.example.com/modules/hosting_git/.
 3. Make sure you have the drush module provision_git installed (drush dl provision_git)
 
 

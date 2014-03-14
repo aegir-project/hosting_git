@@ -3,7 +3,7 @@
 /**
  * Implementation of hook_hosting_tasks
  */
-function hosting_site_git_hosting_tasks() {
+function hosting_git_hosting_tasks() {
   $tasks = array();
 
   $tasks['site']['git-pull'] = array(
@@ -31,7 +31,7 @@ function hosting_site_git_hosting_tasks() {
 /**
  * Implementation of hook_perm()
  */
-function hosting_site_git_perm() {
+function hosting_git_perm() {
   return array(
     'create git-pull task',
     'create git_clone task',
@@ -59,7 +59,7 @@ function hosting_task_git_pull_form($node) {
  */
 function hosting_task_git_clone_form($node) {
 
-  $site_path = _hosting_site_git_getsitepath($node);
+  $site_path = _hosting_git_getsitepath($node);
 
   if ($site_path) {
 
@@ -75,7 +75,7 @@ function hosting_task_git_clone_form($node) {
 
     // The location where the repo should be cloned
     // We currently support modules, libraries, themes and settings
-    $options = _hosting_site_git_getgitlocations();
+    $options = _hosting_git_getgitlocations();
 
     $form['location'] = array(
       '#title' => t('Location'),
@@ -92,7 +92,7 @@ function hosting_task_git_clone_form($node) {
         '#parents' => array('location')
       );
 
-      if (!_hosting_site_git_isdirempty($site_path . '/' . $key)) {
+      if (!_hosting_git_isdirempty($site_path . '/' . $key)) {
         $form['location'][$key]['#disabled'] = TRUE;
         $form['location'][$key]['#description'] = t('The target directory for %option is not empty. Git needs an empty directory for the clone operation', array('%option' => $option));
       }
@@ -124,7 +124,7 @@ function hosting_task_git_clone_form_validate($form, &$form_state) {
  */
 function hosting_task_git_checkout_form($node) {
   // Get the path to the site
-  $site_path = _hosting_site_git_getsitepath($node);
+  $site_path = _hosting_git_getsitepath($node);
 
   // We can only perform a checkout when there's a path and there's a git repository
   if ($site_path) {
@@ -139,7 +139,7 @@ function hosting_task_git_checkout_form($node) {
     );
 
     // Check for locations where we can perform a checkout
-    $options = _hosting_site_git_getgitlocations();
+    $options = _hosting_git_getgitlocations();
 
     $form['location'] = array(
       '#title' => t('Location'),
@@ -184,7 +184,7 @@ function hosting_task_git_checkout_form_validate($form, &$form_state) {
 
 /* Private functions */
 
-function _hosting_site_git_isdirempty($dir) {
+function _hosting_git_isdirempty($dir) {
   // Check to see if the target dir is empty
   if ($handle = @opendir($dir)) {
     // open directory
@@ -199,7 +199,7 @@ function _hosting_site_git_isdirempty($dir) {
   return TRUE;
 }
 
-function _hosting_site_git_getsitepath($node) {
+function _hosting_git_getsitepath($node) {
   // Select the platform publish_path for $node->platform
   $platform_publishpath = db_result(db_query("SELECT publish_path FROM {hosting_platform} WHERE nid = %d", $node->platform));
 
@@ -211,7 +211,7 @@ function _hosting_site_git_getsitepath($node) {
   }
 }
 
-function _hosting_site_git_getgitlocations() {
+function _hosting_git_getgitlocations() {
   // TODO Should we make this configurable?
   return array(
     '.' => t('Site specific folder root'),

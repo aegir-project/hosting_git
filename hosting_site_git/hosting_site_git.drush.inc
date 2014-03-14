@@ -11,7 +11,7 @@
 /**
  * Implementation of hook_drush_command().
  */
-function hosting_site_git_drush_command() {
+function hosting_git_drush_command() {
   // The provision-git_pull command has been replace with provision-git-pull from provision_git
 
   $items['provision-git_clone'] = array(
@@ -38,7 +38,7 @@ function hosting_site_git_drush_command() {
 /**
  * Implements drush_hook_post_COMMAND().
  */
-function drush_hosting_site_git_post_provision_git_pull() {
+function drush_hosting_git_post_provision_git_pull() {
     // Re-verify the site, this corrects the file permission when necessary
     $options = array();
     $target = d()->uri;
@@ -48,7 +48,7 @@ function drush_hosting_site_git_post_provision_git_pull() {
 /**
  * Map values of site node into command line arguments
  */
-function drush_hosting_site_git_pre_hosting_task($task) {
+function drush_hosting_git_pre_hosting_task($task) {
   $task =& drush_get_context('HOSTING_TASK');
 
   // Only work on selected task types.
@@ -79,7 +79,7 @@ function drush_hosting_site_git_pre_hosting_task($task) {
 /**
  * Implements the provision-git_clone command
  */
-function drush_hosting_site_git_provision_git_clone($gitrepo, $location) {
+function drush_hosting_git_provision_git_clone($gitrepo, $location) {
 
   drush_log(dt('Start git clone command'), 'ok');
   drush_log(dt('Git repo: ') . $gitrepo, 'ok');
@@ -113,7 +113,7 @@ function drush_hosting_site_git_provision_git_clone($gitrepo, $location) {
 /**
  * Implements the provision-git_checkout command
  */
-function drush_hosting_site_git_provision_git_checkout($tag, $location) {
+function drush_hosting_git_provision_git_checkout($tag, $location) {
   drush_log(dt('Start git checkout command'), 'ok');
   drush_log(dt('Git tag: ') . $tag, 'ok');
   drush_log(dt('Location: ') . $location, 'ok');

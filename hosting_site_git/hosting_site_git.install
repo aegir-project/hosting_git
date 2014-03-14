@@ -7,7 +7,7 @@
  *
  * We re-named 'git_pull' tasks to 'git-pull', to work with provision_git
  */
-function hosting_site_git_update_6200() {
+function hosting_git_update_6200() {
   $ret = array();
 
   $replacements = array(
