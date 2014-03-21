@@ -1,12 +1,8 @@
 <?php
 /**
- * @file hosting_git_pull.module
+ * @file
  *
- * Provides a Hosting Queue and a URL callback for remote services to ping, in
- * order to trigger a Pull Code task.
- *
- * Used to keep a dev server up to date with the commits of projects.
- *
+ * Provides Git integration
  */
 
 define('HOSTING_GIT_PULL_DISABLED', 0);
@@ -62,8 +58,7 @@ function hosting_git_hosting_tasks() {
 }
 
 /**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
+ * Access function for the pull task on platforms.
  */
 function hosting_git_access_platform_pull($node) {
   if (user_access('create platform git-pull task') && isset($node->git['git_allow_pull_task'])) {
@@ -71,6 +66,7 @@ function hosting_git_access_platform_pull($node) {
   }
   return TRUE;
 }
+
 /**
  * Implements hook_permission().
  */
@@ -298,6 +294,7 @@ function hosting_task_git_pull_form($node) {
 
   return $form;
 }
+
 /**
  * Implementation of hook_form()
  */
