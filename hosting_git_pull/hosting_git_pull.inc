@@ -20,7 +20,7 @@ function hosting_git_pull_callback($project, $hash) {
   }
 
   // Make sure we got the project.
-  if (!$project_node){
+  if (!$project_node) {
     $message = "Project $project not found.";
   }
   // Make sure the security code is valid
@@ -29,11 +29,11 @@ function hosting_git_pull_callback($project, $hash) {
     $status = HOSTING_GIT_PULL_STATUS_INVALID_CODE;
   }
   // Make sure the project has pull callback enabled
-  elseif ($project_node->pull_method != HOSTING_GIT_PULL_CALLBACK){
+  elseif ($project_node->pull_method != HOSTING_GIT_PULL_CALLBACK) {
     $message = "Project $project is NOT configured to use Pull Code URL callback!";
   }
   // Make sure the project has platforms with pull enabled.
-  elseif (empty($environments_to_pull)){
+  elseif (empty($environments_to_pull)) {
     $message = "Project $project has no environments configured to Pull Code on commit!";
   }
   // Make sure the client's IP address is on the list
@@ -62,11 +62,11 @@ function hosting_git_pull_callback($project, $hash) {
   }
 
   // Log It, only if there is a status
-  if (isset($status)){
+  if (isset($status)) {
     $record = new stdClass;
     $record->project_nid = $project_node->nid;
     $record->pull_method = $project_node->pull_method;
-    $record->last_pull = time();
+    $record->last_pull = REQUEST_TIME;
     $record->last_pull_status = $status;
     $record->last_pull_ip = ip_address();
 
@@ -95,7 +95,7 @@ function hosting_git_pull_ip_match($ip, $list) {
     if (trim($ip) === trim($cidr)) {
       return TRUE;
     }
-    @list($net, $mask) = explode('/', trim($cidr));
+    list(@$net, $mask) = explode('/', trim($cidr));
     if (isset($mask)) {
       $bitmask = ~((1 << (32 - $mask)) - 1);
       if ((ip2long($net) & $bitmask) == (ip2long($ip) & $bitmask)) {
@@ -111,6 +111,7 @@ function hosting_git_pull_ip_match($ip, $list) {
  * and given to the GitHub WebHook to invoke a pull after a commit.
  */
 function _hosting_git_pull_callback_url($node) {
+  // TODO The second parameter to this function call should be an array.
   return url(HOSTING_GIT_PULL_CALLBACK_URL
     . '/' . $node->hosting_name
     . '/' . _hosting_git_pull_hash_create($node),
@@ -134,17 +135,18 @@ function _hosting_git_pull_hash_create($node) {
  */
 function hosting_git_pull_project($project_nid) {
   // Search platforms with pull enabled for this project
-  $results = db_query("SELECT environment FROM {hosting_hosting_git_pull_platforms} p LEFT JOIN {hosting_hosting_git_project_object} o ON p.platform_nid = o.object_nid WHERE pull_enabled = 1 AND p.project_nid = %d", $project_nid);
+  $results = db_query("SELECT environment FROM {hosting_hosting_git_pull_platforms} p LEFT JOIN {hosting_hosting_git_project_object} o ON p.platform_nid = o.object_nid WHERE pull_enabled = :pull_enabled AND p.project_nid = :p.project_nid", array(':pull_enabled' => 1, ':p.project_nid' => $project_nid));
 
   $args = array('environments' => '');
 
-  while ($info = db_fetch_object($results)){
-    $args['environments'] .= $info->environment .' ';
+  while ($info = db_fetch_object($results)) {
+    $args['environments'] .= $info->environment . ' ';
   }
   $args['environments'] = trim($args['environments']);
-  if (!empty($args['environments'])){
+  if (!empty($args['environments'])) {
     hosting_add_task($project_nid, 'devshop-pull', $args);
-  } else {
+  }
+  else {
     print "No environments configured to pull! Aborting.";
   }
 }

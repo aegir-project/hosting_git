@@ -10,17 +10,17 @@
 
 
 /**
- * Implements hook_nodeapi()
+ * Implements hook_nodeapi().
  *
  * @todo Break this out into aegir's subhook hook_nodeapi_OP_TYPE()
  */
-function hosting_git_pull_nodeapi(&$node, $op, $a3 = null) {
-
+function hosting_git_pull_nodeapi_OLD(&$node, $op, $a3 = null) {
+  // TODO Remaining code in this function needs to be moved to the appropriate new hook function.
   // PROJECTS
-  if ($node->type == 'project'){
+  if ($node->type == 'project') {
 
     // View Project
-    if ($op == 'view' && $node->pull_method == HOSTING_GIT_PULL_CALLBACK){
+    if ($op == 'view' && $node->pull_method == HOSTING_GIT_PULL_CALLBACK) {
       module_load_include('inc', 'hosting_git_pull');
       $url = _hosting_git_pull_callback_url($node);
       $pull_method .= '<br>' . l(_filter_url_trim($url, 30), $url);
@@ -28,7 +28,7 @@ function hosting_git_pull_nodeapi(&$node, $op, $a3 = null) {
       $status = (int) $node->last_pull_status;
 
       // If access denied, provide link to settings page
-      if ($status == HOSTING_GIT_PULL_STATUS_ACCESS_DENIED){
+      if ($status == HOSTING_GIT_PULL_STATUS_ACCESS_DENIED) {
         $output = '<strong>' . t('Access Denied') . '</strong><br />';
         $output .= '<em>' . hosting_format_interval($node->last_pull) . '</em><br />';
         $output .= t('Commit notification recieved from %ip, but the IP is not allowed to trigger tasks.  See !link.', array(
@@ -55,8 +55,8 @@ function hosting_git_pull_nodeapi(&$node, $op, $a3 = null) {
     }
 
     // Load Project
-    elseif ($op == 'load'){
-      $data = db_fetch_array(db_query('SELECT * FROM {hosting_hosting_git_pull_projects} WHERE project_nid =  %d', $node->nid));
+    elseif ($op == 'load') {
+      $data = db_fetch_array(db_query('SELECT * FROM {hosting_hosting_git_pull_projects} WHERE project_nid = :project_nid', array(':project_nid' => $node->nid)));
       if (!empty($data)) {
         unset($data['project_nid']);
         return $data;
@@ -64,51 +64,104 @@ function hosting_git_pull_nodeapi(&$node, $op, $a3 = null) {
     }
 
     // Insert Project
-    elseif ($op == 'insert'){
-      db_query('INSERT INTO {hosting_hosting_git_pull_projects} (project_nid, pull_method, last_pull, last_pull_status, last_pull_ip) VALUES (%d, %d, %d, %d, "%s")', $node->nid, $node->pull_method, $node->last_pull, $node->last_pull_status, $node->last_pull_ip);
+    elseif ($op == 'insert') {
+      // TODO Please review the conversion of this statement to the D7 database API syntax.
+      /* db_query('INSERT INTO {hosting_hosting_git_pull_projects} (project_nid, pull_method, last_pull, last_pull_status, last_pull_ip) VALUES (%d, %d, %d, %d, "%s")', $node->nid, $node->pull_method, $node->last_pull, $node->last_pull_status, $node->last_pull_ip) */
+      $id = db_insert('hosting_hosting_git_pull_projects')
+  ->fields(array(
+    'project_nid' => $node->nid,
+    'pull_method' => $node->pull_method,
+    'last_pull' => $node->last_pull,
+    'last_pull_status' => $node->last_pull_status,
+    'last_pull_ip' => $node->last_pull_ip,
+  ))
+  ->execute();
 
     }
     // Update Project
-    elseif ($op == 'update'){
+    elseif ($op == 'update') {
       // We can't update because hosting_git_pull might have been enabled after
       // project exists
-      db_query('DELETE FROM {hosting_hosting_git_pull_projects} WHERE project_nid = %d', $node->nid);
-      db_query('INSERT INTO {hosting_hosting_git_pull_projects} (project_nid, pull_method, last_pull, last_pull_status, last_pull_ip) VALUES (%d, %d, %d, "%s", %d)', $node->nid, $node->pull_method, $node->last_pull, $node->last_pull_status, $node->last_pull_ip);
+      // TODO Please review the conversion of this statement to the D7 database API syntax.
+      /* db_query('DELETE FROM {hosting_hosting_git_pull_projects} WHERE project_nid = %d', $node->nid) */
+      db_delete('hosting_hosting_git_pull_projects')
+  ->condition('project_nid', $node->nid)
+  ->execute();
+      // TODO Please review the conversion of this statement to the D7 database API syntax.
+      /* db_query('INSERT INTO {hosting_hosting_git_pull_projects} (project_nid, pull_method, last_pull, last_pull_status, last_pull_ip) VALUES (%d, %d, %d, "%s", %d)', $node->nid, $node->pull_method, $node->last_pull, $node->last_pull_status, $node->last_pull_ip) */
+      $id = db_insert('hosting_hosting_git_pull_projects')
+  ->fields(array(
+    'project_nid' => $node->nid,
+    'pull_method' => $node->pull_method,
+    'last_pull' => $node->last_pull,
+    'last_pull_status' => $node->last_pull_status,
+    'last_pull_ip' => $node->last_pull_ip,
+  ))
+  ->execute();
 
     }
     // Delete Project
-    elseif ($op == 'delete'){
-      db_query('DELETE FROM {hosting_hosting_git_pull_projects} WHERE project_nid = %d', $node->nid);
+    elseif ($op == 'delete') {
+      // TODO Please review the conversion of this statement to the D7 database API syntax.
+      /* db_query('DELETE FROM {hosting_hosting_git_pull_projects} WHERE project_nid = %d', $node->nid) */
+      db_delete('hosting_hosting_git_pull_projects')
+  ->condition('project_nid', $node->nid)
+  ->execute();
 
     }
   }
-
   // PLATFORMS
-  elseif ($node->type == 'platform'){
+  elseif ($node->type == 'platform') {
 
     // Load Platform
-    if ($node->type == 'platform' && $op == 'load'){
-      $data = db_fetch_array(db_query("SELECT * FROM {hosting_hosting_git_pull_platforms} WHERE platform_nid = %d", $node->nid));
-      if (!empty($data)){
+    if ($node->type == 'platform' && $op == 'load') {
+      $data = db_fetch_array(db_query("SELECT * FROM {hosting_hosting_git_pull_platforms} WHERE platform_nid = :platform_nid", array(':platform_nid' => $node->nid)));
+      if (!empty($data)) {
         unset($data['project_nid']);
         return $data;
       }
     }
 
     // Insert Platform
-    elseif ($op == 'insert'){
-      db_query('INSERT INTO {hosting_hosting_git_pull_platforms} (platform_nid, project_nid, pull_enabled, pull_reset) VALUES (%d, %d, %d, %d)', $node->nid, $node->project_nid, $node->pull_enabled, $node->pull_reset);
+    elseif ($op == 'insert') {
+      // TODO Please review the conversion of this statement to the D7 database API syntax.
+      /* db_query('INSERT INTO {hosting_hosting_git_pull_platforms} (platform_nid, project_nid, pull_enabled, pull_reset) VALUES (%d, %d, %d, %d)', $node->nid, $node->project_nid, $node->pull_enabled, $node->pull_reset) */
+      $id = db_insert('hosting_hosting_git_pull_platforms')
+  ->fields(array(
+    'platform_nid' => $node->nid,
+    'project_nid' => $node->project_nid,
+    'pull_enabled' => $node->pull_enabled,
+    'pull_reset' => $node->pull_reset,
+  ))
+  ->execute();
     }
 
     // Update Platform
-    elseif ($op == 'update'){
-      db_query('DELETE FROM {hosting_hosting_git_pull_platforms} WHERE platform_nid = %d', $node->nid);
-      db_query('INSERT INTO {hosting_hosting_git_pull_platforms} (platform_nid, project_nid, pull_enabled, pull_reset) VALUES (%d, %d, %d, %d)', $node->nid, $node->project_nid, $node->pull_enabled, $node->pull_reset);
+    elseif ($op == 'update') {
+      // TODO Please review the conversion of this statement to the D7 database API syntax.
+      /* db_query('DELETE FROM {hosting_hosting_git_pull_platforms} WHERE platform_nid = %d', $node->nid) */
+      db_delete('hosting_hosting_git_pull_platforms')
+  ->condition('platform_nid', $node->nid)
+  ->execute();
+      // TODO Please review the conversion of this statement to the D7 database API syntax.
+      /* db_query('INSERT INTO {hosting_hosting_git_pull_platforms} (platform_nid, project_nid, pull_enabled, pull_reset) VALUES (%d, %d, %d, %d)', $node->nid, $node->project_nid, $node->pull_enabled, $node->pull_reset) */
+      $id = db_insert('hosting_hosting_git_pull_platforms')
+  ->fields(array(
+    'platform_nid' => $node->nid,
+    'project_nid' => $node->project_nid,
+    'pull_enabled' => $node->pull_enabled,
+    'pull_reset' => $node->pull_reset,
+  ))
+  ->execute();
     }
 
     // Delete Project
-    elseif ($op == 'delete'){
-      db_query('DELETE FROM {hosting_hosting_git_pull_platforms} WHERE platform_nid = %d', $node->nid);
+    elseif ($op == 'delete') {
+      // TODO Please review the conversion of this statement to the D7 database API syntax.
+      /* db_query('DELETE FROM {hosting_hosting_git_pull_platforms} WHERE platform_nid = %d', $node->nid) */
+      db_delete('hosting_hosting_git_pull_platforms')
+  ->condition('platform_nid', $node->nid)
+  ->execute();
     }
   }
 }

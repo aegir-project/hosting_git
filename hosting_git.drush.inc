@@ -9,7 +9,7 @@
  */
 
 /**
- * Implementation of hook_drush_command().
+ * Implements hook_drush_command().
  */
 function hosting_git_drush_command() {
   // The provision-git_pull command has been replace with provision-git-pull from provision_git
@@ -28,7 +28,7 @@ function hosting_git_drush_command() {
     'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
     'arguments' => array(
       'tag' => dt('Parameter for the git checkout command'),
-      'location' => dt('Location in the site structure where the command should be performed.')
+      'location' => dt('Location in the site structure where the command should be performed.'),
     ),
   );
 
@@ -39,17 +39,17 @@ function hosting_git_drush_command() {
  * Implements drush_hook_post_COMMAND().
  */
 function drush_hosting_git_post_provision_git_pull() {
-    // Re-verify the site, this corrects the file permission when necessary
-    $options = array();
-    $target = d()->uri;
-    provision_backend_invoke($target, 'provision-verify', array(), $options);
+  // Re-verify the site, this corrects the file permission when necessary
+  $options = array();
+  $target = d()->uri;
+  provision_backend_invoke($target, 'provision-verify', array(), $options);
 }
 
 /**
  * Map values of site node into command line arguments
  */
 function drush_hosting_git_pre_hosting_task($task) {
-  $task =& drush_get_context('HOSTING_TASK');
+  $task = &drush_get_context('HOSTING_TASK');
 
   // Only work on selected task types.
   if (!in_array($task->task_type, array('git-pull', 'git_clone', 'git_checkout'))) {
@@ -150,7 +150,7 @@ function drush_hosting_git_provision_git_checkout($tag, $location) {
 }
 
 /**
- * Implementation of Implementation of hook_hosting_TASK_OBJECT_context_options().
+ * Implements hook_hosting_TASK_OBJECT_context_options().
  */
 function hosting_git_hosting_platform_context_options(&$task) {
   // Set some defaults
@@ -166,7 +166,7 @@ function hosting_git_hosting_platform_context_options(&$task) {
 }
 
 /**
- * Implementation of hook_drush_context_import().
+ * Implements hook_drush_context_import().
  */
 function hosting_git_drush_context_import($context, &$node) {
   if ($context->type == 'platform' && $context->deploy_from_git) {

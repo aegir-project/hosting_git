@@ -19,7 +19,7 @@ define('HOSTING_GIT_PULL_STATUS_INVALID_CODE', 3);
 
 // These are github's Webhook callback IPs.
 // This list grows occaisonally, update it as needed.
-define('HOSTING_GIT_PULL_DEFAULT_ALLOWED_IPS',"
+define('HOSTING_GIT_PULL_DEFAULT_ALLOWED_IPS', "
 204.232.175.64/27
 192.30.252.0/22
 ");
@@ -28,7 +28,7 @@ define('HOSTING_GIT_PULL_DEFAULT_ALLOWED_IPS',"
 define('HOSTING_GIT_PULL_CALLBACK_URL', 'git/pull');
 
 /**
- * Implementation of hook_hosting_tasks
+ * Implements hook_hosting_tasks().
  */
 function hosting_git_hosting_tasks() {
   $tasks = array();
@@ -36,31 +36,35 @@ function hosting_git_hosting_tasks() {
   $tasks['site']['git-pull'] = array(
     'title' => t('Git pull'),
     'description' => t('Runs a git pull on the current site.'),
-    'dialog' => TRUE
+    'dialog' => TRUE,
   );
 
   $tasks['site']['git_clone'] = array(
     'title' => t('Git clone'),
     'description' => t('Clone a git repository in a location of your choice.'),
-    'dialog' => TRUE
+    'dialog' => TRUE,
   );
 
   $tasks['site']['git_checkout'] = array(
     'title' => t('Git checkout'),
     'description' => t('Perform a git checkout'),
-    'dialog' => TRUE
+    'dialog' => TRUE,
   );
-  
-    $tasks['platform']['git-pull'] = array(
+
+  $tasks['platform']['git-pull'] = array(
     'title' => t('Git pull'),
     'description' => t('Runs a git pull on the current platform.'),
     'access callback' => 'hosting_git_access_platform_pull',
-    'dialog' => TRUE
+    'dialog' => TRUE,
   );
 
   return $tasks;
 }
 
+/**
+ * @todo Please document this function.
+ * @see http://drupal.org/node/1354
+ */
 function hosting_git_access_platform_pull($node) {
   if (user_access('create platform git-pull task') && isset($node->git['git_allow_pull_task'])) {
     return $node->git['git_allow_pull_task'];
@@ -68,19 +72,31 @@ function hosting_git_access_platform_pull($node) {
   return TRUE;
 }
 /**
- * Implementation of hook_perm()
+ * Implements hook_permission().
  */
-function hosting_git_perm() {
+function hosting_git_permission() {
   return array(
-    'create git-pull task',
-    'create git_clone task',
-    'create git_checkout task',
-    'create platform git-pull task',
+    'create git-pull task' => array(
+      'title' => t('create git-pull task'),
+      'description' => t('TODO Add a description for \'create git-pull task\''),
+    ),
+    'create git_clone task' => array(
+      'title' => t('create git_clone task'),
+      'description' => t('TODO Add a description for \'create git_clone task\''),
+    ),
+    'create git_checkout task' => array(
+      'title' => t('create git_checkout task'),
+      'description' => t('TODO Add a description for \'create git_checkout task\''),
+    ),
+    'create platform git-pull task' => array(
+      'title' => t('create platform git-pull task'),
+      'description' => t('TODO Add a description for \'create platform git-pull task\''),
+    ),
   );
 }
 
 /**
- * Implements hook_menu()
+ * Implements hook_menu().
  */
 function hosting_git_pull_menu() {
   $items['admin/hosting/git/pull'] = array(
@@ -125,7 +141,7 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
     $form['git']['repo_branch'] = array(
       '#type' => 'textfield',
       '#title' => 'Branch or tag name',
-      '#description' => t('If a branch or tag name is not supplied, the platform will be deployed from <em>master</em>. This must match the Git branch or tag name exactly.')
+      '#description' => t('If a branch or tag name is not supplied, the platform will be deployed from <em>master</em>. This must match the Git branch or tag name exactly.'),
     );
     // repo_url and branch are currently not editable
     if (0 && !is_null($form['nid']['#value'])) {
@@ -164,7 +180,7 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
       '#type' => 'radios',
       '#description' => t('Choose the method of regularly calling "Pull Code". See !link to configure the queue. See !link2 to configure URL Callback.', array(
         '!link' => l(t('Hosting > Queues'), 'admin/hosting/queues'),
-        '!link2' => l(t('Hosting > DevShop Pull Settings'), 'admin/hosting/hosting_git_pull')
+        '!link2' => l(t('Hosting > DevShop Pull Settings'), 'admin/hosting/hosting_git_pull'),
       )),
       '#default_value' => $node->pull_method,
       '#options' => array(
@@ -212,11 +228,19 @@ function hosting_platform_git_node_form_validate($form, &$form_state) {
 /**
  * Implements hook_nodeapi().
  */
-function hosting_git_nodeapi(&$node, $op) {
+function hosting_git_nodeapi_OLD(&$node, $op) {
+  // TODO Remaining code in this function needs to be moved to the appropriate new hook function.
   if ($node->type == 'platform') {
     switch ($op) {
       case 'update':
-        db_query('UPDATE {hosting_platform_git} SET git_allow_pull_task=%d WHERE nid = %d', $node->git['git_allow_pull_task'], $node->nid);
+        // TODO Please review the conversion of this statement to the D7 database API syntax.
+        /* db_query('UPDATE {hosting_platform_git} SET git_allow_pull_task=%d WHERE nid = %d', $node->git['git_allow_pull_task'], $node->nid) */
+        db_update('hosting_platform_git')
+  ->fields(array(
+          'git_allow_pull_task' => $node->git['git_allow_pull_task'],
+        ))
+  ->condition('nid', $node->nid)
+  ->execute();
         break;
       case 'insert':
         $info = new stdClass();
@@ -232,7 +256,7 @@ function hosting_git_nodeapi(&$node, $op) {
         }
         break;
       case 'load':
-        if ($result = db_fetch_object(db_query('SELECT * FROM {hosting_platform_git} WHERE nid = %d', $node->nid))) {
+        if ($result = db_fetch_object(db_query('SELECT * FROM {hosting_platform_git} WHERE nid = :nid', array(':nid' => $node->nid)))) {
           $node->git = array();
           $node->git['repo_url'] = $result->git_repo_url;
           $node->git['repo_branch'] = $result->git_repo_branch;
@@ -290,7 +314,7 @@ function hosting_task_git_clone_form($node) {
       '#type' => 'textfield',
       '#required' => TRUE,
       '#weight' => '-1',
-      '#default_value' => ''
+      '#default_value' => '',
     );
 
     // The location where the repo should be cloned
@@ -309,7 +333,7 @@ function hosting_task_git_clone_form($node) {
         '#type' => 'radio',
         '#title' => $option,
         '#return_value' => $key,
-        '#parents' => array('location')
+        '#parents' => array('location'),
       );
 
       if (!_hosting_git_isdirempty($site_path . '/' . $key)) {
@@ -355,7 +379,7 @@ function hosting_task_git_checkout_form($node) {
       '#type' => 'textfield',
       '#required' => TRUE,
       '#weight' => '-1',
-      '#default_value' => ''
+      '#default_value' => '',
     );
 
     // Check for locations where we can perform a checkout
@@ -372,7 +396,7 @@ function hosting_task_git_checkout_form($node) {
         '#type' => 'radio',
         '#title' => $option,
         '#return_value' => $key,
-        '#parents' => array('location')
+        '#parents' => array('location'),
       );
 
       if (!is_dir($site_path . '/' . $key . '/.git')) {
@@ -403,7 +427,7 @@ function hosting_task_git_checkout_form_validate($form, &$form_state) {
 }
 
 /**
- * Implements hook_hosting_queues()
+ * Implements hook_hosting_queues().
  */
 function hosting_git_pull_hosting_queues() {
   $items['pull'] = array(
@@ -422,7 +446,7 @@ function hosting_git_pull_hosting_queues() {
  */
 function hosting_pull_queue($count) {
 
-  $result = db_query("SELECT d.*  FROM {hosting_hosting_git_project_object} dpo LEFT JOIN {hosting_hosting_git_pull_projects}  d ON dpo.project_nid=d.project_nid WHERE d.pull_method = %d AND dpo.object_type='platform' ORDER BY d.last_pull ASC, dpo.object_nid ASC", array(HOSTING_GIT_PULL_QUEUE));
+  $result = db_query("SELECT d.*  FROM {hosting_hosting_git_project_object} dpo LEFT JOIN {hosting_hosting_git_pull_projects}  d ON dpo.project_nid=d.project_nid WHERE d.pull_method = :d.pull_method AND dpo.object_type = :dpo.object_type ORDER BY d.last_pull ASC, dpo.object_nid ASC", array(':d.pull_method' => array(HOSTING_GIT_PULL_QUEUE), ':dpo.object_type' => 'platform'));
 
   while ($project = db_fetch_object($result)) {
     $project_node = node_load($project->project_nid);
@@ -455,8 +479,8 @@ function hosting_pull_queue($count) {
  * @TODO Convert to check pull queue sites.
  */
 function _hosting_git_pullqueue_get_platforms($limit = 5) {
-  $result = db_query("SELECT COUNT(dpo.object_nid) FROM {hosting_hosting_git_project_object} dpo LEFT JOIN {hosting_hosting_git_pull_projects}  d ON dpo.project_nid=d.project_nid WHERE d.pull_method = %d  AND dpo.object_type='platform' ORDER BY d.last_pull ASC, dpo.object_nid ASC", array(HOSTING_GIT_PULL_QUEUE));
-  return db_result($result);
+  $result = db_query("SELECT COUNT(dpo.object_nid) FROM {hosting_hosting_git_project_object} dpo LEFT JOIN {hosting_hosting_git_pull_projects}  d ON dpo.project_nid=d.project_nid WHERE d.pull_method = :d.pull_method  AND dpo.object_type = :dpo.object_type ORDER BY d.last_pull ASC, dpo.object_nid ASC", array(':d.pull_method' => array(HOSTING_GIT_PULL_QUEUE), ':dpo.object_type' => 'platform'));
+  return $result->fetchField();
 }
 
 
@@ -468,18 +492,18 @@ function _hosting_git_isdirempty($dir) {
     // open directory
     while (($file = readdir($handle)) !== FALSE) {
       if ($file != "." && $file != "..") {
-        closedir($handle);      // Close directory
+        closedir($handle); // Close directory
         return FALSE;
       }
     }
-    closedir($handle);      // Close directory
+    closedir($handle); // Close directory
   }
   return TRUE;
 }
 
 function _hosting_git_getsitepath($node) {
   // Select the platform publish_path for $node->platform
-  $platform_publishpath = db_result(db_query("SELECT publish_path FROM {hosting_platform} WHERE nid = %d", $node->platform));
+  $platform_publishpath = db_query("SELECT publish_path FROM {hosting_platform} WHERE nid = :nid", array(':nid' => $node->platform))->fetchField();
 
   if ($platform_publishpath) {
     return $platform_publishpath . '/sites/' . $node->title;

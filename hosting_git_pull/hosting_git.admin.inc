@@ -19,12 +19,13 @@ function hosting_git_settings_form() {
 
   // If there was a last ip logged, display it here so its easy to add to the list.
   $last_ip = variable_get('hosting_git_pull_last_ip', '');
-  if ($last_ip){
+  if ($last_ip) {
     $items[] = t('The last IP to attempt a commit notification was %ip', array('%ip' => $last_ip));
-  } else {
+  }
+  else {
     $items[] = t('No requests ever detected.  If you add the trigger URL for a project to your git repo host, the IP will be logged and displayed here.');
   }
-  $form['hosting_git_pull_ip_acl']['#description'] = theme('item_list', $items);
+  $form['hosting_git_pull_ip_acl']['#description'] = theme('item_list', array('items' => $items));
 
   return system_settings_form($form);
 }

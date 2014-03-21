@@ -1,4 +1,10 @@
 <?php
+/**
+ * @file
+ * Install, update and uninstall functions for the hosting_git module.
+ *
+ */
+
 
 /**
  * Implements hook_update_N().
@@ -15,10 +21,19 @@ function hosting_git_update_6200() {
   );
 
   foreach ($replacements as $old => $new) {
-    db_query("UPDATE {hosting_task} SET task_type = '%s' where task_type = '%s'", $new, $old);
+    // TODO Please review the conversion of this statement to the D7 database API syntax.
+    /* db_query("UPDATE {hosting_task} SET task_type = '%s' where task_type = '%s'", $new, $old) */
+    db_update('hosting_task')
+  ->fields(array(
+      'task_type' => $new,
+    ))
+  ->execute();
   }
 
-  return $ret;
+  // hook_update_N() no longer returns a $ret array. Instead, return
+  // nothing or a translated string indicating the update ran successfully.
+  // See http://drupal.org/node/224333#update_sql.
+  return t('TODO Add a descriptive string here to show in the UI.') /* $ret */;
 }
 
 
@@ -29,7 +44,7 @@ function hosting_git_schema() {
   $schema = array();
 
   $schema['hosting_platform_git'] = array(
-    'description' => t('A mapping between platform node IDs and Git data'),
+    'description' => 'A mapping between platform node IDs and Git data',
     'fields' => array(
       'nid' => array(
         'description' => 'The platform nid from the {node} table.',
@@ -59,7 +74,7 @@ function hosting_git_schema() {
     ),
     'primary key' => array('nid'),
   );
-  
+
   $schema['hosting_git_pull'] = array(
     'fields' => array(
       'nid' => array(
@@ -72,7 +87,7 @@ function hosting_git_schema() {
         'not null' => TRUE,
         'default' => 0,
         'description' => 'Either DISABLED, QUEUE or CALLBACK',
-       ),
+      ),
       'last_pull' => array(
         'type' => 'int',
         'not null' => TRUE,

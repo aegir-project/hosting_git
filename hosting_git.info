@@ -2,4 +2,4 @@ name = Site git tasks
 description = Allows Hostmaster managed sites to use Git.
 package = Hosting
 dependencies[] = hosting_site
-core = 6.x
+core = 7.x
