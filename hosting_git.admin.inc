@@ -4,7 +4,14 @@
  * General settings form.
  */
 function hosting_git_settings_form() {
-  $form['hosting_git_pull_ip_acl'] = array(
+  $form['pullhook'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Pull on webhook'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+
+  $form['pullhook']['hosting_git_pull_ip_acl'] = array(
     '#type' => 'textarea',
     '#title' => t('Control Access by IP'),
     '#default_value' => variable_get('hosting_git_pull_ip_acl', HOSTING_GIT_PULL_DEFAULT_ALLOWED_IPS),
@@ -25,7 +32,7 @@ function hosting_git_settings_form() {
   else {
     $items[] = t('No requests ever detected.  If you add the trigger URL for a project to your git repo host, the IP will be logged and displayed here.');
   }
-  $form['hosting_git_pull_ip_acl']['#description'] = theme('item_list', array('items' => $items));
+  $form['pullhook']['hosting_git_pull_ip_acl']['#description'] = theme('item_list', array('items' => $items));
 
   return system_settings_form($form);
 }
