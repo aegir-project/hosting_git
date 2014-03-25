@@ -108,7 +108,7 @@ function hosting_git_menu() {
   $items[HOSTING_GIT_PULL_CALLBACK_URL] = array(
     'page callback' => 'hosting_git_pull_callback',
     'access callback' => TRUE,
-    'file' => 'hosting_git_pull.inc',
+    'file' => 'hosting_git.webhook.inc',
     'type' => MENU_CALLBACK,
   );
   return $items;

@@ -95,7 +95,7 @@ function hosting_git_pull_ip_match($ip, $list) {
     if (trim($ip) === trim($cidr)) {
       return TRUE;
     }
-    list(@$net, $mask) = explode('/', trim($cidr));
+    list($net, $mask) = explode('/', trim($cidr));
     if (isset($mask)) {
       $bitmask = ~((1 << (32 - $mask)) - 1);
       if ((ip2long($net) & $bitmask) == (ip2long($ip) & $bitmask)) {
