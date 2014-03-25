@@ -8,6 +8,7 @@
 define('HOSTING_GIT_PULL_DISABLED', 0);
 define('HOSTING_GIT_PULL_QUEUE', 1);
 define('HOSTING_GIT_PULL_CALLBACK', 2);
+define('HOSTING_GIT_PULL_MANUAL', 3);
 
 define('HOSTING_GIT_PULL_STATUS_OK', 1);
 define('HOSTING_GIT_PULL_STATUS_ACCESS_DENIED', 2);
@@ -118,7 +119,10 @@ function hosting_git_menu() {
  * Implements hook_form_alter().
  */
 function hosting_git_form_alter(&$form, &$form_state, $form_id) {
-  if ($form_id == 'platform_node_form') {
+  if ($form_id == 'platform_node_form' || $form_id == 'site_node_form') {
+    // Get node
+    $node = $form['#node'];
+
     $form['git'] = array(
       '#type' => 'fieldset',
       '#tree' => TRUE,
@@ -140,38 +144,21 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
       '#description' => t('If a branch or tag name is not supplied, the platform will be deployed from <em>master</em>. This must match the Git branch or tag name exactly.'),
     );
     // repo_url and branch are currently not editable
-    if (0 && !is_null($form['nid']['#value'])) {
+    if (!is_null($form['nid']['#value'])) {
       $form['git']['repo_url']['#disabled'] = TRUE;
       $form['git']['repo_branch']['#disabled'] = TRUE;
       $form['git']['repo_url']['#description'] = t('Only available on node creation');
       $form['git']['repo_branch']['#description'] = $form['git']['repo_url']['#description'];
     }
 
-    $form['git']['git_allow_pull_task'] = array(
-      '#type' => 'checkbox',
-      '#title' => 'Allow git pull',
-      '#description' => t('Allow the use of a git pull task to update the platform'),
-      '#default_value' => $form['#node']->git['git_allow_pull_task'],
-    );
-
     $form['#validate'][] = 'hosting_platform_git_node_form_validate';
-  }
-  if ($form_id == 'site_node_form') {
-    // Get node
-    $node = $form['#node'];
 
     // Get default value
-    if (is_null($node->pull_method)) {
+    if (!isset($node->pull_method)) {
       $node->pull_method = HOSTING_GIT_PULL_DISABLED;
     }
 
-    //All settings git pull in project page
-    $form['git_settings'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Git Settings'),
-    );
-
-    $form['git_settings']['pull_method'] = array(
+    $form['git']['pull_method'] = array(
       '#title' => 'Automatic Git Pull Method',
       '#type' => 'radios',
       '#description' => t('Choose the method of regularly calling "Pull Code". See !link to configure the queue. See !link2 to configure URL Callback.', array(
@@ -181,12 +168,13 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
       '#default_value' => $node->pull_method,
       '#options' => array(
         HOSTING_GIT_PULL_DISABLED => t('Pull disabled.'),
+        HOSTING_GIT_PULL_MANUAL => t('Pull only when manually starting a git-pull task.'),
         HOSTING_GIT_PULL_QUEUE => t('Pull on queue (every minute).'),
         HOSTING_GIT_PULL_CALLBACK => t('Pull on URL Callback (ie. GitHub Webhook)'),
       ),
     );
-    module_load_include('inc', 'hosting_git_pull');
-    $form['git_settings']['pull_url'] = array(
+    module_load_include('inc', 'hosting_git', 'hosting_git.webhook');
+    $form['git']['pull_url'] = array(
       '#type' => 'textfield',
       '#title' => t('Pull Trigger URL'),
       '#value' => _hosting_git_pull_callback_url($node),
@@ -196,6 +184,7 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
       ),
     );
 
+    /*
     // @TODO: is there a better way to save certain values? We lose data without these.
     $form['git_settings']['last_pull'] = array(
       '#type' => 'value',
@@ -209,6 +198,7 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
       '#type' => 'value',
       '#value' => $node->last_pull_ip,
     );
+     */
   }
 }
 
@@ -222,60 +212,63 @@ function hosting_platform_git_node_form_validate($form, &$form_state) {
 }
 
 /**
- * Implements hook_nodeapi().
+ * Implements hook_node_type_update().
  */
-function hosting_git_nodeapi_OLD(&$node, $op) {
-  // TODO Remaining code in this function needs to be moved to the appropriate new hook function.
-  if ($node->type == 'platform') {
-    switch ($op) {
-      case 'update':
-        // TODO Please review the conversion of this statement to the D7 database API syntax.
-        /* db_query('UPDATE {hosting_platform_git} SET git_allow_pull_task=%d WHERE nid = %d', $node->git['git_allow_pull_task'], $node->nid) */
-        db_update('hosting_platform_git')
-  ->fields(array(
-          'git_allow_pull_task' => $node->git['git_allow_pull_task'],
-        ))
-  ->condition('nid', $node->nid)
-  ->execute();
-        break;
-      case 'insert':
-        $info = new stdClass();
-        $info->nid = $node->nid;
-        $info->git_repo_url = !empty($node->git['repo_url']) ? $node->git['repo_url'] : 'NOOP';
-        $info->git_repo_branch = !empty($node->git['repo_branch']) ? $node->git['repo_branch'] : 'master';
-        $info->git_repo_allow_pull = !empty($node->git['git_allow_pull_task']) ? $node->git['git_allow_pull_task'] : FALSE;
-        if ($node->is_new) {
-          drupal_write_record('hosting_platform_git', $info);
-        }
-        else {
-          drupal_write_record('hosting_platform_git', $info, 'nid');
-        }
-        break;
-      case 'load':
-        if ($result = db_fetch_object(db_query('SELECT * FROM {hosting_platform_git} WHERE nid = :nid', array(':nid' => $node->nid)))) {
-          $node->git = array();
-          $node->git['repo_url'] = $result->git_repo_url;
-          $node->git['repo_branch'] = $result->git_repo_branch;
-          $node->git['git_allow_pull_task'] = $result->git_allow_pull_task;
-        }
-        break;
-      case 'view':
-        if (isset($node->git['repo_url']) && $node->git['repo_url'] != 'NOOP') {
-          $node->content['info']['git_repo_url'] = array(
-            '#type' => 'item',
-            '#title' => t('Repository URL'),
-            '#weight' => 100,
-            '#value' => check_plain($node->git['repo_url']),
-          );
-          $node->content['info']['git_repo_branch'] = array(
-            '#type' => 'item',
-            '#title' => t('Repository branch/tag'),
-            '#weight' => 100,
-            '#value' => check_plain($node->git['repo_branch']),
-          );
-        }
-        break;
-    }
+function hosting_git_node_platform_update($node) {
+  db_update('hosting_platform_git')
+    ->fields(array(
+      'git_allow_pull_task' => $node->git['git_allow_pull_task'],
+    ))
+    ->condition('nid', $node->nid)
+    ->execute();
+}
+
+/**
+ * Implements hook_node_type_insert().
+ */
+function hosting_git_node_platform_insert($node) {
+  $info = new stdClass();
+  $info->nid = $node->nid;
+  $info->git_repo_url = !empty($node->git['repo_url']) ? $node->git['repo_url'] : 'NOOP';
+  $info->git_repo_branch = !empty($node->git['repo_branch']) ? $node->git['repo_branch'] : 'master';
+  $info->git_repo_allow_pull = !empty($node->git['git_allow_pull_task']) ? $node->git['git_allow_pull_task'] : FALSE;
+  if ($node->is_new) {
+    drupal_write_record('hosting_platform_git', $info);
+  }
+  else {
+    drupal_write_record('hosting_platform_git', $info, 'nid');
+  }
+}
+
+/**
+ * Implements hook_node_type_load().
+ */
+function hosting_git_node_platform_load($node) {
+  if ($result = db_fetch_object(db_query('SELECT * FROM {hosting_platform_git} WHERE nid = :nid', array(':nid' => $node->nid)))) {
+    $node->git = array();
+    $node->git['repo_url'] = $result->git_repo_url;
+    $node->git['repo_branch'] = $result->git_repo_branch;
+    $node->git['pull_method'] = $result->git_pull_method;
+  }
+}
+
+/**
+ * Implements hook_node_type_view().
+ */
+function hosting_git_node_view($node) {
+  if (isset($node->git['repo_url']) && $node->git['repo_url'] != 'NOOP') {
+    $node->content['info']['git_repo_url'] = array(
+      '#type' => 'item',
+      '#title' => t('Repository URL'),
+      '#weight' => 100,
+      '#value' => check_plain($node->git['repo_url']),
+    );
+    $node->content['info']['git_repo_branch'] = array(
+      '#type' => 'item',
+      '#title' => t('Repository branch/tag'),
+      '#weight' => 100,
+      '#value' => check_plain($node->git['repo_branch']),
+    );
   }
 }
 

@@ -7,43 +7,12 @@
 
 
 /**
- * Implements hook_update_N().
- *
- * Rename task git_pul to use dashes
- *
- * We re-named 'git_pull' tasks to 'git-pull', to work with provision_git
- */
-function hosting_git_update_6200() {
-  $ret = array();
-
-  $replacements = array(
-    'git_pull' => 'git-pull',
-  );
-
-  foreach ($replacements as $old => $new) {
-    // TODO Please review the conversion of this statement to the D7 database API syntax.
-    /* db_query("UPDATE {hosting_task} SET task_type = '%s' where task_type = '%s'", $new, $old) */
-    db_update('hosting_task')
-  ->fields(array(
-      'task_type' => $new,
-    ))
-  ->execute();
-  }
-
-  // hook_update_N() no longer returns a $ret array. Instead, return
-  // nothing or a translated string indicating the update ran successfully.
-  // See http://drupal.org/node/224333#update_sql.
-  return t('TODO Add a descriptive string here to show in the UI.') /* $ret */;
-}
-
-
-/**
  * Implements hook_schema().
  */
 function hosting_git_schema() {
   $schema = array();
 
-  $schema['hosting_platform_git'] = array(
+  $schema['hosting_git'] = array(
     'description' => 'A mapping between platform node IDs and Git data',
     'fields' => array(
       'nid' => array(
@@ -64,23 +33,6 @@ function hosting_git_schema() {
         'length' => 255,
         'not null' => TRUE,
         'default' => '',
-      ),
-      'git_allow_pull_task' => array(
-        'description' => 'Whether the git-pull task can be performed on this platform.',
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
-      ),
-    ),
-    'primary key' => array('nid'),
-  );
-
-  $schema['hosting_git_pull'] = array(
-    'fields' => array(
-      'nid' => array(
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
       ),
       'pull_method' => array(
         'type' => 'int',
