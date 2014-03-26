@@ -10,19 +10,19 @@ define('HOSTING_GIT_PULL_QUEUE', 1);
 define('HOSTING_GIT_PULL_CALLBACK', 2);
 define('HOSTING_GIT_PULL_MANUAL', 3);
 
-define('HOSTING_GIT_PULL_STATUS_OK', 1);
-define('HOSTING_GIT_PULL_STATUS_ACCESS_DENIED', 2);
-define('HOSTING_GIT_PULL_STATUS_INVALID_CODE', 3);
+define('HOSTING_GIT_WEBHOOK_STATUS_OK', 1);
+define('HOSTING_GIT_WEBHOOK_STATUS_ACCESS_DENIED', 2);
+define('HOSTING_GIT_WEBHOOK_STATUS_INVALID_CODE', 3);
 
 // These are github's Webhook callback IPs.
 // This list grows occaisonally, update it as needed.
-define('HOSTING_GIT_PULL_DEFAULT_ALLOWED_IPS', "
+define('HOSTING_GIT_WEBHOOK_DEFAULT_ALLOWED_IPS', "
 204.232.175.64/27
 192.30.252.0/22
 ");
 
 // The base URL to use for the Post Commit callback.
-define('HOSTING_GIT_PULL_CALLBACK_URL', 'git/pull');
+define('HOSTING_GIT_WEBHOOK_CALLBACK_URL', 'git/pull');
 
 /**
  * Implements hook_hosting_tasks().
@@ -106,7 +106,7 @@ function hosting_git_menu() {
     'tab_parent' => 'admin/hosting',
     'type' => MENU_LOCAL_TASK,
   );
-  $items[HOSTING_GIT_PULL_CALLBACK_URL] = array(
+  $items[HOSTING_GIT_WEBHOOK_CALLBACK_URL] = array(
     'page callback' => 'hosting_git_pull_callback',
     'access callback' => TRUE,
     'file' => 'hosting_git.webhook.inc',
@@ -123,6 +123,7 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
     // Get node
     $node = $form['#node'];
 
+    $form['#validate'][] = 'hosting_git_node_form_validate';
     $form['git'] = array(
       '#type' => 'fieldset',
       '#tree' => TRUE,
@@ -136,12 +137,14 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
       '#type' => 'textfield',
       '#title' => 'Repository URL',
       '#description' => t('The full URL that you would pass to <em>git clone</em>. Example:  git@github.com:username/project.git or https://github.com/username/project.git. Note that this repository must be accessible by the Aegir user.'),
+      '#default_value' => $node->git['repo_url'],
     );
 
     $form['git']['repo_branch'] = array(
       '#type' => 'textfield',
       '#title' => 'Branch or tag name',
       '#description' => t('If a branch or tag name is not supplied, the platform will be deployed from <em>master</em>. This must match the Git branch or tag name exactly.'),
+      '#default_value' => $node->git['repo_branch'],
     );
     // repo_url and branch are currently not editable
     if (!is_null($form['nid']['#value'])) {
@@ -151,13 +154,6 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
       $form['git']['repo_branch']['#description'] = $form['git']['repo_url']['#description'];
     }
 
-    $form['#validate'][] = 'hosting_platform_git_node_form_validate';
-
-    // Get default value
-    if (!isset($node->pull_method)) {
-      $node->pull_method = HOSTING_GIT_PULL_DISABLED;
-    }
-
     $form['git']['pull_method'] = array(
       '#title' => 'Automatic Git Pull Method',
       '#type' => 'radios',
@@ -165,7 +161,7 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
         '!link' => l(t('Hosting > Queues'), 'admin/hosting/queues'),
         '!link2' => l(t('Hosting > DevShop Pull Settings'), 'admin/hosting/hosting_git_pull'),
       )),
-      '#default_value' => $node->pull_method,
+      '#default_value' => $node->git['pull_method'],
       '#options' => array(
         HOSTING_GIT_PULL_DISABLED => t('Pull disabled.'),
         HOSTING_GIT_PULL_MANUAL => t('Pull only when manually starting a git-pull task.'),
@@ -205,65 +201,95 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
 /**
  * Validation callback for platform node form.
  */
-function hosting_platform_git_node_form_validate($form, &$form_state) {
+function hosting_git_node_form_validate($form, &$form_state) {
+  //dsm($form);
+  //dsm($form_state);
   if (!empty($form_state['values']['git']['repo_url']) && !empty($form_state['values']['makefile'])) {
     form_set_error('makefile', t('Git deployment and Makefile deployment cannot be combined'));
   }
 }
 
 /**
- * Implements hook_node_type_update().
+ * Implements hook_node_update().
  */
-function hosting_git_node_platform_update($node) {
-  db_update('hosting_platform_git')
-    ->fields(array(
-      'git_allow_pull_task' => $node->git['git_allow_pull_task'],
-    ))
-    ->condition('nid', $node->nid)
-    ->execute();
-}
-
-/**
- * Implements hook_node_type_insert().
- */
-function hosting_git_node_platform_insert($node) {
-  $info = new stdClass();
-  $info->nid = $node->nid;
-  $info->git_repo_url = !empty($node->git['repo_url']) ? $node->git['repo_url'] : 'NOOP';
-  $info->git_repo_branch = !empty($node->git['repo_branch']) ? $node->git['repo_branch'] : 'master';
-  $info->git_repo_allow_pull = !empty($node->git['git_allow_pull_task']) ? $node->git['git_allow_pull_task'] : FALSE;
-  if ($node->is_new) {
-    drupal_write_record('hosting_platform_git', $info);
-  }
-  else {
-    drupal_write_record('hosting_platform_git', $info, 'nid');
+function hosting_git_node_update($node) {
+  //dsm($node, 'update');
+  if ($node->type == 'platform' || $node->type == 'site') {
+    $updated = db_update('hosting_git')
+      ->fields(array(
+        'pull_method' => $node->git['pull_method'],
+      ))
+      ->condition('nid', $node->nid)
+      ->execute();
+    if (!$updated) {
+      hosting_git_node_insert($node);
+    }
   }
 }
 
 /**
- * Implements hook_node_type_load().
+ * Implements hook_node_insert().
  */
-function hosting_git_node_platform_load($node) {
-  if ($result = db_fetch_object(db_query('SELECT * FROM {hosting_platform_git} WHERE nid = :nid', array(':nid' => $node->nid)))) {
-    $node->git = array();
-    $node->git['repo_url'] = $result->git_repo_url;
-    $node->git['repo_branch'] = $result->git_repo_branch;
-    $node->git['pull_method'] = $result->git_pull_method;
+function hosting_git_node_insert($node) {
+  //dsm($node, 'insert');
+  if ($node->type == 'platform' || $node->type == 'site') {
+    $info = new stdClass();
+    $info->nid = $node->nid;
+    $info->repo_url = !empty($node->git['repo_url']) ? $node->git['repo_url'] : 'NOOP';
+    $info->repo_branch = !empty($node->git['repo_branch']) ? $node->git['repo_branch'] : 'master';
+    $info->pull_method = !empty($node->git['pull_method']) ? $node->git['pull_method'] : FALSE;
+    drupal_write_record('hosting_git', $info, 'nid');
   }
 }
+
+/**
+ * Implements hook_node_load().
+ */
+function hosting_git_node_load($nodes, $types) {
+  foreach ($nodes as $node) {
+    if ($node->type == 'platform' || $node->type == 'site') {
+      $r = db_query('SELECT * FROM {hosting_git} WHERE nid = :nid', array(':nid' => $node->nid));
+      if ($result = $r->fetchObject()) {
+        $node->git = array();
+        $node->git['repo_url'] = $result->repo_url;
+        $node->git['repo_branch'] = $result->repo_branch;
+        $node->git['pull_method'] = $result->pull_method;
+      }
+      else {
+        $node->git = array();
+        $node->git['repo_url'] = NULL;
+        $node->git['repo_branch'] = NULL;
+        $node->git['pull_method'] = HOSTING_GIT_PULL_MANUAL;
+      }
+      dsm($node);
+    }
+  }
+}
+/**
+ * Implements hook_node_delete().
+ */
+function hosting_git_node_delete($node) {
+  if ($node->type == 'platform' || $node->type == 'site') {
+    db_delete('hosting_git')
+      ->condition('nid', $node->nid)
+      ->execute();
+
+  }
+}
+
 
 /**
  * Implements hook_node_type_view().
  */
 function hosting_git_node_view($node) {
   if (isset($node->git['repo_url']) && $node->git['repo_url'] != 'NOOP') {
-    $node->content['info']['git_repo_url'] = array(
+    $node->content['info']['repo_url'] = array(
       '#type' => 'item',
       '#title' => t('Repository URL'),
       '#weight' => 100,
       '#value' => check_plain($node->git['repo_url']),
     );
-    $node->content['info']['git_repo_branch'] = array(
+    $node->content['info']['repo_branch'] = array(
       '#type' => 'item',
       '#title' => t('Repository branch/tag'),
       '#weight' => 100,

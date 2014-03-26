@@ -20,14 +20,14 @@ function hosting_git_schema() {
         'type' => 'int',
         'not null' => TRUE,
       ),
-      'git_repo_url' => array(
+      'repo_url' => array(
         'description' => 'The URL given to the git repository',
         'type' => 'varchar',
         'length' => 255,
         'not null' => TRUE,
         'default' => '',
       ),
-      'git_repo_branch' => array(
+      'repo_branch' => array(
         'description' => 'The git branch given',
         'type' => 'varchar',
         'length' => 255,
@@ -53,7 +53,7 @@ function hosting_git_schema() {
       'last_pull_ip' => array(
         'type' => 'varchar',
         'length' => 15,
-        'not null' => TRUE,
+        'not null' => FALSE,
       ),
     ),
     'primary key' => array('nid'),
