@@ -117,17 +117,17 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
       '#type' => 'textfield',
       '#title' => 'Repository URL',
       '#description' => t('The full URL that you would pass to <em>git clone</em>. Example:  git@github.com:username/project.git or https://github.com/username/project.git. Note that this repository must be accessible by the Aegir user.'),
-      '#default_value' => $node->git['repo_url'],
+      '#default_value' => isset($node->git['repo_url']) ? $node->git['repo_url'] : '',
     );
 
     $form['git']['repo_branch'] = array(
       '#type' => 'textfield',
       '#title' => 'Branch or tag name',
       '#description' => t('If a branch or tag name is not supplied, the platform will be deployed from <em>master</em>. This must match the Git branch or tag name exactly.'),
-      '#default_value' => $node->git['repo_branch'],
+      '#default_value' => isset($node->git['repo_branch']) ? $node->git['repo_branch'] : '',
     );
     // repo_url and branch are currently not editable
-    if (!is_null($form['nid']['#value'])) {
+    if (!empty($node->nid)) {
       $form['git']['repo_url']['#disabled'] = TRUE;
       $form['git']['repo_branch']['#disabled'] = TRUE;
       $form['git']['repo_url']['#description'] = t('Only available on node creation');
@@ -141,7 +141,7 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
         '!link' => l(t('Hosting > Queues'), 'admin/hosting/queues'),
         '!link2' => l(t('Hosting > DevShop Pull Settings'), 'admin/hosting/hosting_git_pull'),
       )),
-      '#default_value' => $node->git['pull_method'],
+      '#default_value' => isset($node->git['pull_method']) ? $node->git['pull_method'] : HOSTING_GIT_PULL_DISABLED,
       '#options' => array(
         HOSTING_GIT_PULL_DISABLED => t('Pull disabled.'),
         HOSTING_GIT_PULL_MANUAL => t('Pull only when manually starting a git-pull task.'),
@@ -149,16 +149,18 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
         HOSTING_GIT_PULL_CALLBACK => t('Pull on URL Callback (ie. GitHub Webhook)'),
       ),
     );
-    module_load_include('inc', 'hosting_git', 'hosting_git.webhook');
-    $form['git']['pull_url'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Pull Trigger URL'),
-      '#value' => _hosting_git_pull_callback_url($node),
-      '#description' => t('Configure your repo to hit this URL when it receives a commit.'),
-      '#attributes' => array(
-        'onclick' => 'this.select()',
-      ),
-    );
+    if (isset($node->nid)) {
+      module_load_include('inc', 'hosting_git', 'hosting_git.webhook');
+      $form['git']['pull_url'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Pull Trigger URL'),
+        '#value' => _hosting_git_pull_callback_url($node),
+        '#description' => t('Configure your repo to hit this URL when it receives a commit.'),
+        '#attributes' => array(
+          'onclick' => 'this.select()',
+        ),
+      );
+    }
 
     /*
     // @TODO: is there a better way to save certain values? We lose data without these.
@@ -198,6 +200,9 @@ function hosting_git_node_update($node) {
       ->key(array('nid' => $node->nid))
       ->fields(array(
         'pull_method' => $node->git['pull_method'],
+        // fields that should probably stay disabled
+        //'repo_url' => $node->git['repo_url'],
+        //'repo_branch' => $node->git['repo_branch'],
       ))
       ->execute();
   }
@@ -209,12 +214,14 @@ function hosting_git_node_update($node) {
 function hosting_git_node_insert($node) {
   //dsm($node, 'insert');
   if ($node->type == 'platform' || $node->type == 'site') {
-    $info = new stdClass();
-    $info->nid = $node->nid;
-    $info->repo_url = !empty($node->git['repo_url']) ? $node->git['repo_url'] : 'NOOP';
-    $info->repo_branch = !empty($node->git['repo_branch']) ? $node->git['repo_branch'] : 'master';
-    $info->pull_method = !empty($node->git['pull_method']) ? $node->git['pull_method'] : FALSE;
-    drupal_write_record('hosting_git', $info, 'nid');
+    db_merge('hosting_git')
+      ->key(array('nid' => $node->nid))
+      ->fields(array(
+        'pull_method' => $node->git['pull_method'],
+        'repo_url' => $node->git['repo_url'],
+        'repo_branch' => $node->git['repo_branch'],
+      ))
+      ->execute();
   }
 }
 

@@ -44,10 +44,10 @@ function drush_hosting_git_pre_hosting_task($task) {
 function hosting_git_hosting_platform_context_options(&$task) {
   // Set some defaults
   $task->context_options['deploy_from_git'] = FALSE;
-  $task->context_options['repo_branch'] = 'NOOP';
+  $task->context_options['repo_branch'] = '';
 
   // If we're actually provisioning from Git, populate real data.
-  if (isset($task->ref->git['repo_url']) && $task->ref->git['repo_url'] != 'NOOP') {
+  if (!empty($task->ref->git['repo_url'])) {
     $task->context_options['repo_url'] = $task->ref->git['repo_url'];
     $task->context_options['deploy_from_git'] = TRUE;
     $task->context_options['repo_branch'] = $task->ref->git['repo_branch'];
