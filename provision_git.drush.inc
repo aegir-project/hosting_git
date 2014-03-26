@@ -270,3 +270,33 @@ function drush_provision_git_add($path = '') {
     drush_log(dt('Git add: ' . $path), 'ok');
   }
 }
+
+
+/**
+ * Implements drush_hook_provision_verify_validate().
+ *
+ * This needs to be called in the validate step so that it runs before the
+ * Makefile check and the check for a Drupal installation. Those operations,
+ * very inconveniently, run in the same function.
+ */
+function drush_provision_git_provision_verify_validate() {
+  if (d()->type === 'platform') {
+    if (!provision_file()->exists(d()->root)->status() && d()->deploy_from_git) {
+
+      drush_log(dt("Platform path does not exist, cloning from Git"));
+      $command = 'git clone --recursive -- ' . escapeshellarg(trim(d()->repo_url)) . ' ' . d()->root . ' && cd ' . d()->root . ' && git checkout ' . escapeshellarg(trim(d()->repo_branch)) ;
+      drush_log(dt("Executing: " . $command));
+
+      // Clone the repo.
+      $output = exec($command, $output, $return_value);
+
+      if ($return_value === 0) {
+        drush_log(dt("Platform successfully cloned from Git"), 'success');
+      }
+      else {
+        // We send back the full output if something went wrong.
+        return drush_set_error("GIT_CLONE_FAILED", "Could not clone git repository. Output from Git: " . $output);
+      }
+    }
+  }
+}
