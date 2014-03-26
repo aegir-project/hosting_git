@@ -284,18 +284,19 @@ function drush_provision_git_provision_verify_validate() {
     if (!provision_file()->exists(d()->root)->status() && d()->deploy_from_git) {
 
       drush_log(dt("Platform path does not exist, cloning from Git"));
-      $command = 'git clone --recursive -- ' . escapeshellarg(trim(d()->repo_url)) . ' ' . d()->root . ' && cd ' . d()->root . ' && git checkout ' . escapeshellarg(trim(d()->repo_branch)) ;
-      drush_log(dt("Executing: " . $command));
+
+      $command = 'git clone --recursive '
+        . '--branch ' . escapeshellarg(trim(d()->repo_branch))
+        . ' -- ' . escapeshellarg(trim(d()->repo_url)) . ' ' . escapeshellarg(d()->root);
 
       // Clone the repo.
-      $output = exec($command, $output, $return_value);
-
-      if ($return_value === 0) {
+      if (drush_shell_exec($command)) {
         drush_log(dt("Platform successfully cloned from Git"), 'success');
       }
       else {
         // We send back the full output if something went wrong.
-        return drush_set_error("GIT_CLONE_FAILED", "Could not clone git repository. Output from Git: " . $output);
+        drush_log(dt('!output', array('!output' => implode("\n", drush_shell_exec_output()))), 'notice');
+        return drush_set_error("GIT_CLONE_FAILED", "Could not clone git repository.");
       }
     }
   }
