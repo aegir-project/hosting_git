@@ -300,3 +300,29 @@ function drush_provision_git_provision_verify_validate() {
     }
   }
 }
+
+/**
+ * Register our directory as a place to find provision classes.
+ */
+function provision_git_register_autoload() {
+  static $loaded = FALSE;
+  if (!$loaded) {
+    $loaded = TRUE;
+    provision_autoload_register_prefix('Provision_', dirname(__FILE__));
+  }
+}
+
+/**
+ * Implements hook_drush_init().
+ */
+function provision_git_drush_init() {
+  provision_git_register_autoload();
+}
+
+/**
+ *  Implements hook_provision_services().
+ */
+function provision_git_provision_services() {
+  provision_git_register_autoload();
+  return array('git' => NULL);
+}
