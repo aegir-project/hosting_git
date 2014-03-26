@@ -11,13 +11,13 @@ function hosting_git_pull_callback($name, $hash) {
 
   // Load the node & list of allowed IPs
   $node = hosting_context_load($name);
+  $name_clean = check_plain($name);
   $allowed_ips  = explode("\n", trim(variable_get('hosting_git_webhook_ip_acl', HOSTING_GIT_WEBHOOK_DEFAULT_ALLOWED_IPS)));
   array_filter(array_map('trim', $allowed_ips));
- 
+
   // Make sure we got the node.
   if (!$node) {
-    // @TODO check_plain or t()
-    $message = "Project $project not found.";
+    $message = "Project $name_clean not found.";
   }
   // Make sure the security code is valid
   elseif (_hosting_git_webhook_hash_create($node) != $hash) {
@@ -26,7 +26,7 @@ function hosting_git_pull_callback($name, $hash) {
   }
   // Make sure the project has pull callback enabled
   elseif ($node->git['pull_method'] != HOSTING_GIT_PULL_CALLBACK) {
-    $message = "Project $project is NOT configured to use Pull Code URL callback!";
+    $message = "Project $name_clean is NOT configured to use Pull Code URL callback!";
   }
   // Make sure the client's IP address is on the list
   elseif (!hosting_git_pull_ip_match(ip_address(), $allowed_ips)) {
@@ -41,7 +41,8 @@ function hosting_git_pull_callback($name, $hash) {
     // @TODO: Check Payload Here... If we see a GitHub payload with branches,
     // filter out the $environments_to_pull based on those branches.
 
-    hosting_add_task($node->nid, 'git-pull');
+    $args = array('reset_hard' => TRUE);
+    hosting_add_task($node->nid, 'git-pull', $args);
   }
 
   // Log It, only if there is a status
