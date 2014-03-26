@@ -36,17 +36,6 @@ function drush_hosting_git_pre_hosting_task($task) {
 
   // Force the repository path, provision_git could otherwise look up the tree and find a platform dir under git control.
   $task->options['force_repo_path_as_toplevel'] = TRUE;
-
-
-  // Pass the dialog entries to the drush provision script
-  if ($task->task_type == 'git_clone') {
-    $task->args[1] = $task->task_args['gitrepo'];
-    $task->args[2] = $task->task_args['location'];
-  }
-  elseif ($task->task_type == 'git_checkout') {
-    $task->args[1] = $task->task_args['tag'];
-    $task->args[2] = $task->task_args['location'];
-  }
 }
 
 /**

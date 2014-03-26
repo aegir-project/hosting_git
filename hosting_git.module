@@ -36,18 +36,6 @@ function hosting_git_hosting_tasks() {
     'dialog' => TRUE,
   );
 
-  $tasks['site']['git_clone'] = array(
-    'title' => t('Git clone'),
-    'description' => t('Clone a git repository in a location of your choice.'),
-    'dialog' => TRUE,
-  );
-
-  $tasks['site']['git_checkout'] = array(
-    'title' => t('Git checkout'),
-    'description' => t('Perform a git checkout'),
-    'dialog' => TRUE,
-  );
-
   $tasks['platform']['git-pull'] = array(
     'title' => t('Git pull'),
     'description' => t('Runs a git pull on the current platform.'),
@@ -76,14 +64,6 @@ function hosting_git_permission() {
     'create git-pull task' => array(
       'title' => t('create git-pull task'),
       'description' => t('TODO Add a description for \'create git-pull task\''),
-    ),
-    'create git_clone task' => array(
-      'title' => t('create git_clone task'),
-      'description' => t('TODO Add a description for \'create git_clone task\''),
-    ),
-    'create git_checkout task' => array(
-      'title' => t('create git_checkout task'),
-      'description' => t('TODO Add a description for \'create git_checkout task\''),
     ),
     'create platform git-pull task' => array(
       'title' => t('create platform git-pull task'),
