@@ -111,29 +111,3 @@ function _hosting_git_pull_callback_url($node) {
 function _hosting_git_webhook_hash_create($node) {
   return md5($node->hosting_name . $node->nid);
 }
-
-/**
- * Prepares a "Pull Code" task for a project.
- *
- * @param $project_nid
- *   A project nid.
- *
- * Platforms in a project must be enabled to have this command run on them.
- */
-function hosting_git_pull_project($project_nid) {
-  // Search platforms with pull enabled for this project
-  $results = db_query("SELECT environment FROM {hosting_hosting_git_pull_platforms} p LEFT JOIN {hosting_hosting_git_project_object} o ON p.platform_nid = o.object_nid WHERE pull_enabled = :pull_enabled AND p.project_nid = :p.project_nid", array(':pull_enabled' => 1, ':p.project_nid' => $project_nid));
-
-  $args = array('environments' => '');
-
-  while ($info = db_fetch_object($results)) {
-    $args['environments'] .= $info->environment . ' ';
-  }
-  $args['environments'] = trim($args['environments']);
-  if (!empty($args['environments'])) {
-    hosting_add_task($project_nid, 'devshop-pull', $args);
-  }
-  else {
-    print "No environments configured to pull! Aborting.";
-  }
-}
