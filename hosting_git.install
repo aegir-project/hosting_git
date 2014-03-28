@@ -2,7 +2,6 @@
 /**
  * @file
  * Install, update and uninstall functions for the hosting_git module.
- *
  */
 
 
@@ -61,4 +60,3 @@ function hosting_git_schema() {
 
   return $schema;
 }
-

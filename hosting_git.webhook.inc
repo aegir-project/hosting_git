@@ -1,7 +1,8 @@
 <?php
 
 /**
- * @file Git webhook code
+ * @file
+ * Git webhook code
  */
 
 /**
@@ -9,7 +10,7 @@
  */
 function hosting_git_pull_callback($name, $hash) {
 
-  // Load the node & list of allowed IPs
+  // Load the node & list of allowed IPs.
   $node = hosting_context_load($name);
   $name_clean = check_plain($name);
   $allowed_ips  = explode("\n", trim(variable_get('hosting_git_webhook_ip_acl', HOSTING_GIT_WEBHOOK_DEFAULT_ALLOWED_IPS)));
@@ -19,16 +20,16 @@ function hosting_git_pull_callback($name, $hash) {
   if (!$node) {
     $message = "Project $name_clean not found.";
   }
-  // Make sure the security code is valid
+  // Make sure the security code is valid.
   elseif (_hosting_git_webhook_hash_create($node) != $hash) {
     $message = "Security code $hash is not valid!";
     $status = HOSTING_GIT_WEBHOOK_STATUS_INVALID_CODE;
   }
-  // Make sure the project has pull callback enabled
+  // Make sure the project has pull callback enabled.
   elseif ($node->git['pull_method'] != HOSTING_GIT_PULL_CALLBACK) {
     $message = "Project $name_clean is NOT configured to use Pull Code URL callback!";
   }
-  // Make sure the client's IP address is on the list
+  // Make sure the client's IP address is on the list.
   elseif (!hosting_git_pull_ip_match(ip_address(), $allowed_ips)) {
     $message = ip_address() . " is not authorized to invoke a Pull Code request.";
     $status = HOSTING_GIT_WEBHOOK_STATUS_ACCESS_DENIED;
@@ -45,7 +46,7 @@ function hosting_git_pull_callback($name, $hash) {
     hosting_add_task($node->nid, 'git-pull', $args);
   }
 
-  // Log It, only if there is a status
+  // Log It, only if there is a status.
   if (isset($status)) {
     db_update('hosting_git')
       ->fields(array(
@@ -66,12 +67,13 @@ function hosting_git_pull_callback($name, $hash) {
 }
 
 /**
- * Check whether a given ip address matches a list of allowed ip addresses, some of which
- * may be CIDR.
+ * Check whether a given ip address matches a list of allowed ip addresses.
  *
- * @param $ip
+ * A CIDR is allowed.
+ *
+ * @param string $ip
  *   The ip addy to test.
- * @param $list
+ * @param array $list
  *   The list to test against.
  */
 function hosting_git_pull_ip_match($ip, $list) {
@@ -91,8 +93,9 @@ function hosting_git_pull_ip_match($ip, $list) {
 }
 
 /**
- * Create the full URL that is displayed in the project node view
- * and given to the GitHub WebHook to invoke a pull after a commit.
+ * Create the full URL that is displayed in the node view.
+ *
+ * This URL can be given to the GitHub WebHook to invoke a pull after a commit.
  */
 function _hosting_git_pull_callback_url($node) {
   // TODO The second parameter to this function call should be an array.
@@ -103,7 +106,7 @@ function _hosting_git_pull_callback_url($node) {
 }
 
 /**
- * Create a security hash code based on the platform node
+ * Create a security hash code based on the node.
  */
 function _hosting_git_webhook_hash_create($node) {
   return md5($node->hosting_name . $node->nid);
