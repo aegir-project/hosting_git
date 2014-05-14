@@ -186,7 +186,7 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
 function hosting_git_node_form_validate($form, &$form_state) {
   //dsm($form);
   //dsm($form_state);
-  if (!empty($form_state['values']['git']['repo_url']) && !empty($form_state['values']['makefile'])) {
+  if (!empty($form_state['values']['git']['repo_url']) && !empty($form_state['values']['makefile']['makefile'])) {
     form_set_error('makefile', t('Git deployment and Makefile deployment cannot be combined'));
   }
 }
