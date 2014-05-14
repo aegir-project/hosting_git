@@ -1,7 +1,6 @@
 <?php
 /**
  * @file
- *
  * Provides Git integration
  */
 
@@ -63,11 +62,11 @@ function hosting_git_permission() {
   return array(
     'create git-pull task' => array(
       'title' => t('create git-pull task'),
-      'description' => t('TODO Add a description for \'create git-pull task\''),
+      'description' => t('create git-pull task'),
     ),
     'create platform git-pull task' => array(
       'title' => t('create platform git-pull task'),
-      'description' => t('TODO Add a description for \'create platform git-pull task\''),
+      'description' => t('create platform git-pull task'),
     ),
   );
 }
@@ -100,7 +99,7 @@ function hosting_git_menu() {
  */
 function hosting_git_form_alter(&$form, &$form_state, $form_id) {
   if ($form_id == 'platform_node_form' || $form_id == 'site_node_form') {
-    // Get node
+    // Get node object.
     $node = $form['#node'];
 
     $form['#validate'][] = 'hosting_git_node_form_validate';
@@ -126,7 +125,7 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
       '#description' => t('If a branch or tag name is not supplied, the platform will be deployed from <em>master</em>. This must match the Git branch or tag name exactly.'),
       '#default_value' => isset($node->git['repo_branch']) ? $node->git['repo_branch'] : '',
     );
-    // repo_url and branch are currently not editable
+    // repo_url and branch are currently not editable.
     if (!empty($node->nid)) {
       $form['git']['repo_url']['#disabled'] = TRUE;
       $form['git']['repo_branch']['#disabled'] = TRUE;
@@ -283,7 +282,7 @@ function hosting_git_node_view($node) {
 }
 
 /**
- * Implementation of hook_form()
+ * Implements hook_form().
  */
 function hosting_task_git_pull_form($node) {
 
@@ -332,7 +331,6 @@ function hosting_pull_queue($count) {
 
 /**
  * Get a number of nodes that have their pull queue enabled.
- *
  */
 function _hosting_git_pullqueue_get_nodes() {
   $result = db_query("SELECT COUNT(*) FROM {hosting_git} "
@@ -345,23 +343,25 @@ function _hosting_git_pullqueue_get_nodes() {
 
 /* Private functions */
 
+/**
+ * Check to see if the target dir is empty.
+ */
 function _hosting_git_isdirempty($dir) {
-  // Check to see if the target dir is empty
   if ($handle = @opendir($dir)) {
-    // open directory
+    // open directory.
     while (($file = readdir($handle)) !== FALSE) {
       if ($file != "." && $file != "..") {
-        closedir($handle); // Close directory
+        closedir($handle); // Close directory.
         return FALSE;
       }
     }
-    closedir($handle); // Close directory
+    closedir($handle); // Close directory.
   }
   return TRUE;
 }
 
 function _hosting_git_getsitepath($node) {
-  // Select the platform publish_path for $node->platform
+  // Select the platform publish_path for $node->platform.
   $platform_publishpath = db_query("SELECT publish_path FROM {hosting_platform} WHERE nid = :nid", array(':nid' => $node->platform))->fetchField();
 
   if ($platform_publishpath) {
