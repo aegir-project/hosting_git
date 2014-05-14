@@ -270,13 +270,13 @@ function hosting_git_node_view($node) {
       '#type' => 'item',
       '#title' => t('Repository URL'),
       '#weight' => 100,
-      '#value' => check_plain($node->git['repo_url']),
+      '#markup' => check_plain($node->git['repo_url']),
     );
     $node->content['info']['repo_branch'] = array(
       '#type' => 'item',
       '#title' => t('Repository branch/tag'),
       '#weight' => 100,
-      '#value' => check_plain($node->git['repo_branch']),
+      '#markup' => check_plain($node->git['repo_branch']),
     );
   }
 }
