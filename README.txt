@@ -44,3 +44,9 @@ GitHub Setup
    WebHook URLs page.
 6. Click "Test Hook" to run a test, then check your DevShop project to ensure a
    Pull Code task was triggered.
+
+
+CAVEATS
+=======
+
+In the ip addess access control list IPv6 addresses are NOT supported with a CIDR suffix.
