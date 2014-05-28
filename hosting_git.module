@@ -238,8 +238,8 @@ function hosting_git_node_load($nodes, $types) {
  */
 function _hosting_git_node_load_defaults(&$node) {
   $node->git = array();
-  $node->git['repo_url'] = NULL;
-  $node->git['repo_branch'] = NULL;
+  $node->git['repo_url'] = '';
+  $node->git['repo_branch'] = '';
   $node->git['pull_method'] = HOSTING_GIT_PULL_MANUAL;
 }
 
