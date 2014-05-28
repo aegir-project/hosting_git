@@ -13,7 +13,7 @@ function hosting_git_pull_callback($name, $hash) {
   // Load the node & list of allowed IPs.
   $node = hosting_context_load($name);
   $name_clean = check_plain($name);
-  $allowed_ips  = explode("\n", trim(variable_get('hosting_git_webhook_ip_acl', HOSTING_GIT_WEBHOOK_DEFAULT_ALLOWED_IPS)));
+  $allowed_ips = explode("\n", trim(variable_get('hosting_git_webhook_ip_acl', HOSTING_GIT_WEBHOOK_DEFAULT_ALLOWED_IPS)));
   array_filter(array_map('trim', $allowed_ips));
 
   // Make sure we got the node.
@@ -81,7 +81,7 @@ function hosting_git_pull_ip_match($ip, $list) {
     if (trim($ip) === trim($cidr)) {
       return TRUE;
     }
-    list($net, $mask) = explode('/', trim($cidr));
+    @list($net, $mask) = explode('/', trim($cidr));
     if (isset($mask)) {
       $bitmask = ~((1 << (32 - $mask)) - 1);
       if ((ip2long($net) & $bitmask) == (ip2long($ip) & $bitmask)) {

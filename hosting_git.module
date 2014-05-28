@@ -160,22 +160,6 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
         ),
       );
     }
-
-    /*
-    // @TODO: is there a better way to save certain values? We lose data without these.
-    $form['git_settings']['last_pull'] = array(
-      '#type' => 'value',
-      '#value' => $node->last_pull,
-    );
-    $form['git_settings']['last_pull_status'] = array(
-      '#type' => 'value',
-      '#value' => $node->last_pull_status,
-    );
-    $form['git_settings']['last_pull_ip'] = array(
-      '#type' => 'value',
-      '#value' => $node->last_pull_ip,
-    );
-     */
   }
 }
 
