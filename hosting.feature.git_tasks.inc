@@ -14,11 +14,11 @@
  *  associative array indexed by feature key.
  */
 function hosting_git_hosting_feature() {
-  $features['git_pull'] = array(
+  $features['git'] = array(
     // title to display in form
-    'title' => t('Git pull tasks'),
+    'title' => t('Git integration'),
     // description
-    'description' => t('Enables git pulls on sites and platforms.'),
+    'description' => t('Enables storing git information. Dependency for other git modules.'),
     // initial status ( HOSTING_FEATURE_DISABLED, HOSTING_FEATURE_ENABLED, HOSTING_FEATURE_REQUIRED )
     'status' => HOSTING_FEATURE_DISABLED,
     // module to enable/disable alongside feature
@@ -28,5 +28,14 @@ function hosting_git_hosting_feature() {
     // which group to display in ( null , experimental )
     'group' => 'experimental',
   );
+
+  $features['git_pull'] = array(
+    'title' => t('Git pull task'),
+    'description' => t('Enables git pull tasks on sites and platforms.'),
+    'status' => HOSTING_FEATURE_DISABLED,
+    'module' => 'hosting_git_pull',
+    'group' => 'experimental',
+  );
+
   return $features;
 }

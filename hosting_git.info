@@ -1,5 +1,5 @@
-name = Site git tasks
-description = Allows Hostmaster managed sites to use Git.
+name = Git integration
+description = Allows Hostmaster managed sites and platforms to use Git.
 package = Hosting
 dependencies[] = hosting_site
 core = 7.x
