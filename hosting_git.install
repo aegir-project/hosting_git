@@ -11,7 +11,7 @@
 function hosting_git_schema() {
   $schema = array();
 
-  $schema['hosting_git'] = array(
+  $schema['hosting_git_pull'] = array(
     'description' => 'A mapping between platform node IDs and Git data',
     'fields' => array(
       'nid' => array(
@@ -32,27 +32,6 @@ function hosting_git_schema() {
         'length' => 255,
         'not null' => TRUE,
         'default' => '',
-      ),
-      'pull_method' => array(
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
-        'description' => 'Either DISABLED, QUEUE or CALLBACK',
-      ),
-      'last_pull' => array(
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
-      ),
-      'last_pull_status' => array(
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
-      ),
-      'last_pull_ip' => array(
-        'type' => 'varchar',
-        'length' => 15,
-        'not null' => FALSE,
       ),
     ),
     'primary key' => array('nid'),

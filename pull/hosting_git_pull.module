@@ -12,7 +12,7 @@ function hosting_git_pull_menu() {
   $items[HOSTING_GIT_WEBHOOK_CALLBACK_URL] = array(
     'page callback' => 'hosting_git_pull_callback',
     'access callback' => TRUE,
-    'file' => 'hosting_git.webhook.inc',
+    'file' => 'hosting_git_pull.webhook.inc',
     'type' => MENU_CALLBACK,
   );
 
@@ -133,7 +133,7 @@ function hosting_git_pull_form_alter(&$form, &$form_state, $form_id) {
       ),
     );
     if (isset($node->nid) && $node->site_status == HOSTING_SITE_ENABLED) {
-      module_load_include('inc', 'hosting_git', 'hosting_git.webhook');
+      module_load_include('inc', 'hosting_git_pull', 'hosting_git_pull.webhook');
       $form['git']['pull_url'] = array(
         '#type' => 'textfield',
         '#title' => t('Pull Trigger URL'),
@@ -145,6 +145,44 @@ function hosting_git_pull_form_alter(&$form, &$form_state, $form_id) {
       );
     }
   }
+
+  if ($form_id == 'hosting_git_settings_form') {
+    $form['pullhook'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Pull on webhook'),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+    );
+
+    $form['pullhook']['hosting_git_pull_webhook_ip_acl'] = array(
+      '#type' => 'textarea',
+      '#title' => t('Control Access by IP'),
+      '#default_value' => variable_get('hosting_git_pull_webhook_ip_acl', HOSTING_GIT_WEBHOOK_DEFAULT_ALLOWED_IPS),
+      '#rows' => 6,
+    );
+
+    // Add some help text on what to fill in.
+    $items = array();
+    $items[] = t('Enter the IP addresses that are allowed to trigger a "Pull Code" task. You may specify address ranges using CIDR notation (e.g. 192.168.1.0/24).');
+    $items[] = t('GitHub post-receive callback servers are: %github_ips.', array('%github_ips' => variable_get('hosting_git_pull_webhook_ip_acl', HOSTING_GIT_WEBHOOK_DEFAULT_ALLOWED_IPS)));
+    $items[] = t("Your local computer's IP address is %ip.", array('%ip' => ip_address()));
+
+    // Show the last IP used to call our webhook. To make adding it easier.
+    $last_ip = variable_get('hosting_git_pull_webhook_last_ip', '');
+    if ($last_ip) {
+      $items[] = t('The last IP to attempt a commit notification was %ip', array('%ip' => $last_ip));
+    }
+    else {
+      $items[] = t('No requests ever detected.  If you add the trigger URL for a project to your git repo host, the IP will be logged and displayed here.');
+    }
+    $form['pullhook']['hosting_git_pull_webhook_ip_acl']['#description'] = theme('item_list', array('items' => $items));
+
+    $form['#submit'][] = 'hosting_git_pull_settings_form_submit';
+  }
+}
+
+function hosting_git_pull_settings_form_submit(&$form, &$form_state) {
+  variable_set('hosting_git_pull_webhook_ip_acl', $form_state['values']['hosting_git_pull_webhook_ip_acl']);
 }
 
 /**
@@ -152,7 +190,7 @@ function hosting_git_pull_form_alter(&$form, &$form_state, $form_id) {
  */
 function hosting_git_pull_node_update($node) {
   if ($node->type == 'platform' || $node->type == 'site') {
-    db_merge('hosting_git')
+    db_merge('hosting_git_pull')
       ->key(array('nid' => $node->nid))
       ->fields(array(
         'pull_method' => $node->git['pull_method'],
@@ -172,7 +210,7 @@ function hosting_git_pull_node_insert($node) {
     if (empty($node->git['repo_branch'])) {
       _hosting_git_pull_node_load_defaults($node);
     }
-    db_merge('hosting_git')
+    db_merge('hosting_git_pull')
       ->key(array('nid' => $node->nid))
       ->fields(array(
         'pull_method' => $node->git['pull_method'],
@@ -187,7 +225,7 @@ function hosting_git_pull_node_insert($node) {
 function hosting_git_pull_node_load($nodes, $types) {
   foreach ($nodes as $node) {
     if ($node->type == 'platform' || $node->type == 'site') {
-      $r = db_query('SELECT pull_method FROM {hosting_git} WHERE nid = :nid', array(':nid' => $node->nid));
+      $r = db_query('SELECT pull_method FROM {hosting_git_pull} WHERE nid = :nid', array(':nid' => $node->nid));
       if ($result = $r->fetchObject()) {
         if (!isset($node->git)) {
           $node->git = array();
@@ -210,7 +248,7 @@ function _hosting_git_pull_node_load_defaults($node) {
  */
 function hosting_pull_queue($count) {
 
-  $result = db_query("SELECT nid FROM {hosting_git} "
+  $result = db_query("SELECT nid FROM {hosting_git_pull} "
           . "WHERE pull_method = :pull_method "
           . "ORDER BY last_pull ASC",
           array(':pull_method' => HOSTING_GIT_PULL_QUEUE));
@@ -226,10 +264,9 @@ function hosting_pull_queue($count) {
  * Get a number of nodes that have their pull queue enabled.
  */
 function _hosting_git_pullqueue_get_nodes() {
-  $result = db_query("SELECT COUNT(*) FROM {hosting_git} "
+  $result = db_query("SELECT COUNT(*) FROM {hosting_git_pull} "
           . "WHERE pull_method = :pull_method "
           . "ORDER BY last_pull ASC ",
           array(':pull_method' => HOSTING_GIT_PULL_QUEUE));
   return $result->fetchField();
 }
-

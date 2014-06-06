@@ -21,7 +21,7 @@ function hosting_git_pull_callback($name, $hash) {
     $message = "Project $name_clean not found.";
   }
   // Make sure the security code is valid.
-  elseif (_hosting_git_webhook_hash_create($node) != $hash) {
+  elseif (_hosting_git_pull_webhook_hash_create($node) != $hash) {
     $message = "Security code $hash is not valid!";
     $status = HOSTING_GIT_WEBHOOK_STATUS_INVALID_CODE;
   }
@@ -101,13 +101,13 @@ function _hosting_git_pull_callback_url($node) {
   // TODO The second parameter to this function call should be an array.
   return url(HOSTING_GIT_WEBHOOK_CALLBACK_URL
     . '/' . $node->hosting_name
-    . '/' . _hosting_git_webhook_hash_create($node),
+    . '/' . _hosting_git_pull_webhook_hash_create($node),
     array('absolute' => TRUE));
 }
 
 /**
  * Create a security hash code based on the node.
  */
-function _hosting_git_webhook_hash_create($node) {
+function _hosting_git_pull_webhook_hash_create($node) {
   return md5($node->hosting_name . $node->nid);
 }
