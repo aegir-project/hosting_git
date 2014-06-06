@@ -9,16 +9,6 @@
  */
 
 /**
- * Implements drush_hook_post_COMMAND().
- */
-function drush_hosting_git_post_provision_git_pull() {
-  // Re-verify the site, this corrects the file permission when necessary.
-  $options = array();
-  $target = d()->uri;
-  provision_backend_invoke($target, 'provision-verify', array(), $options);
-}
-
-/**
  * Map values of site node into command line arguments.
  */
 function drush_hosting_git_pre_hosting_task($task) {
