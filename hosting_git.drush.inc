@@ -51,7 +51,7 @@ function hosting_git_hosting_platform_context_options(&$task) {
   if (!empty($task->ref->git['repo_url'])) {
     $task->context_options['repo_url'] = $task->ref->git['repo_url'];
     $task->context_options['deploy_from_git'] = TRUE;
-    $task->context_options['repo_branch'] = $task->ref->git['repo_branch'];
+    $task->context_options['git_ref'] = $task->ref->git['git_ref'];
   }
 }
 
@@ -61,6 +61,6 @@ function hosting_git_hosting_platform_context_options(&$task) {
 function hosting_git_drush_context_import($context, &$node) {
   if ($context->type == 'platform' && $context->deploy_from_git) {
     $node->git['repo_url'] = $context->repo_url;
-    $node->git['repo_branch'] = $context->repo_branch;
+    $node->git['git_ref'] = $context->git_ref;
   }
 }
