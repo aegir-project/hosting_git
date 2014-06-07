@@ -26,8 +26,8 @@ function hosting_git_schema() {
         'not null' => TRUE,
         'default' => '',
       ),
-      'repo_branch' => array(
-        'description' => 'The git branch given',
+      'git_ref' => array(
+        'description' => 'The current git branch or tag.',
         'type' => 'varchar',
         'length' => 255,
         'not null' => TRUE,
