@@ -69,9 +69,7 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
     );
     // repo_url and branch are currently not editable.
     if (!empty($node->nid)) {
-      $form['git']['repo_url']['#disabled'] = TRUE;
       $form['git']['git_ref']['#disabled'] = TRUE;
-      $form['git']['repo_url']['#description'] = t('Only available on node creation');
       $form['git']['git_ref']['#description'] = $form['git']['repo_url']['#description'];
     }
   }
@@ -94,9 +92,29 @@ function hosting_git_node_form_validate($form, &$form_state) {
 function hosting_git_node_insert($node) {
   //dsm($node, 'insert');
   if ($node->type == 'platform' || $node->type == 'site') {
-    if (empty($node->git['repo_url'])) {
+    if (empty($node->git['repo_url']) || empty($node->git['git_ref'])) {
       _hosting_git_node_load_defaults($node);
     }
+    db_merge('hosting_git')
+      ->key(array('nid' => $node->nid))
+      ->fields(array(
+        'repo_url' => $node->git['repo_url'],
+        'git_ref' => $node->git['git_ref'],
+      ))
+      ->execute();
+  }
+}
+
+/**
+ * Implements hook_node_update().
+ */
+function hosting_git_node_update($node) {
+dsm($node, 'update');
+  if ($node->type == 'platform' || $node->type == 'site') {
+    if (empty($node->git['repo_url']) || empty($node->git['git_ref'])) {
+      _hosting_git_node_load_defaults($node);
+    }
+
     db_merge('hosting_git')
       ->key(array('nid' => $node->nid))
       ->fields(array(
@@ -138,8 +156,13 @@ function _hosting_git_node_load_defaults(&$node) {
     $node->git = array();
   }
 
-  $node->git['repo_url'] = '';
-  $node->git['git_ref'] = '';
+  if (!isset($node->git['repo_url'])) {
+    $node->git['repo_url'] = '';
+  }
+
+  if (!isset($node->git['git_ref'])) {
+    $node->git['git_ref'] = '';
+  }
 }
 
 /**
