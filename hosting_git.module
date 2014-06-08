@@ -61,18 +61,18 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
       '#default_value' => isset($node->git['repo_url']) ? $node->git['repo_url'] : '',
     );
 
-    $form['git']['repo_branch'] = array(
+    $form['git']['git_ref'] = array(
       '#type' => 'textfield',
       '#title' => 'Branch or tag name',
       '#description' => t('If a branch or tag name is not supplied, the platform will be deployed from <em>master</em>. This must match the Git branch or tag name exactly.'),
-      '#default_value' => isset($node->git['repo_branch']) ? $node->git['repo_branch'] : '',
+      '#default_value' => isset($node->git['git_ref']) ? $node->git['git_ref'] : '',
     );
     // repo_url and branch are currently not editable.
     if (!empty($node->nid)) {
       $form['git']['repo_url']['#disabled'] = TRUE;
-      $form['git']['repo_branch']['#disabled'] = TRUE;
+      $form['git']['git_ref']['#disabled'] = TRUE;
       $form['git']['repo_url']['#description'] = t('Only available on node creation');
-      $form['git']['repo_branch']['#description'] = $form['git']['repo_url']['#description'];
+      $form['git']['git_ref']['#description'] = $form['git']['repo_url']['#description'];
     }
   }
 }
@@ -101,7 +101,7 @@ function hosting_git_node_insert($node) {
       ->key(array('nid' => $node->nid))
       ->fields(array(
         'repo_url' => $node->git['repo_url'],
-        'repo_branch' => $node->git['repo_branch'],
+        'git_ref' => $node->git['git_ref'],
       ))
       ->execute();
   }
@@ -121,7 +121,7 @@ function hosting_git_node_load($nodes, $types) {
         }
 
         $node->git['repo_url'] = $result->repo_url;
-        $node->git['repo_branch'] = $result->repo_branch;
+        $node->git['git_ref'] = $result->git_ref;
       }
       else {
         _hosting_git_node_load_defaults($node);
@@ -139,7 +139,7 @@ function _hosting_git_node_load_defaults(&$node) {
   }
 
   $node->git['repo_url'] = '';
-  $node->git['repo_branch'] = '';
+  $node->git['git_ref'] = '';
 }
 
 /**
@@ -165,11 +165,11 @@ function hosting_git_node_view($node) {
       '#weight' => 100,
       '#markup' => check_plain($node->git['repo_url']),
     );
-    $node->content['info']['repo_branch'] = array(
+    $node->content['info']['git_ref'] = array(
       '#type' => 'item',
       '#title' => t('Repository branch/tag'),
       '#weight' => 100,
-      '#markup' => check_plain($node->git['repo_branch']),
+      '#markup' => check_plain($node->git['git_ref']),
     );
   }
 }
