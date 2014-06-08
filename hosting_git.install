@@ -11,7 +11,7 @@
 function hosting_git_schema() {
   $schema = array();
 
-  $schema['hosting_git_pull'] = array(
+  $schema['hosting_git'] = array(
     'description' => 'A mapping between platform node IDs and Git data',
     'fields' => array(
       'nid' => array(
