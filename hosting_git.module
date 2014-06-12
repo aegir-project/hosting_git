@@ -237,3 +237,18 @@ function _hosting_git_getgitlocations() {
     'libraries' => t('Libraries'),
   );
 }
+
+/**
+ * Test to see if a platform or site node has an enabled status.
+ *
+ * @param object $node
+ * @return boolean
+ */
+function _hosting_git_site_or_platform_enabled($node) {
+  return (
+    isset($node->nid)
+    && (
+      ($node->type == 'site' && $node->site_status == HOSTING_SITE_ENABLED)
+      || ($node->type == 'platform' && $node->platform_status == HOSTING_PLATFORM_ENABLED)
+    ));
+}

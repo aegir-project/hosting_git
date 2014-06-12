@@ -132,7 +132,7 @@ function hosting_git_pull_form_alter(&$form, &$form_state, $form_id) {
         HOSTING_GIT_PULL_CALLBACK => t('Pull on URL Callback (ie. GitHub Webhook)'),
       ),
     );
-    if (isset($node->nid) && $node->site_status == HOSTING_SITE_ENABLED) {
+    if (_hosting_git_site_or_platform_enabled($node)) {
       module_load_include('inc', 'hosting_git_pull', 'hosting_git_pull.webhook');
       $form['git']['pull_url'] = array(
         '#type' => 'textfield',
