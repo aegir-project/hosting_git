@@ -46,6 +46,21 @@ function hosting_git_hosting_platform_context_options(&$task) {
 }
 
 /**
+ * Implements hook_hosting_TASK_OBJECT_context_options().
+ */
+function hosting_git_hosting_site_context_options(&$task) {
+  // Set some defaults.
+  $task->context_options['repo_url'] = FALSE;
+  $task->context_options['git_ref'] = '';
+
+  // If we're actually provisioning from Git, populate real data.
+  if (!empty($task->ref->git['repo_url'])) {
+    $task->context_options['repo_url'] = $task->ref->git['repo_url'];
+    $task->context_options['git_ref'] = $task->ref->git['git_ref'];
+  }
+}
+
+/**
  * Implements hook_drush_context_import().
  */
 function hosting_git_drush_context_import($context, &$node) {
