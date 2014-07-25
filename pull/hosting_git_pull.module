@@ -122,7 +122,7 @@ function hosting_git_pull_form_alter(&$form, &$form_state, $form_id) {
       '#type' => 'radios',
       '#description' => t('Choose the method of regularly calling "Pull Code". See !link to configure the queue. See !link2 to configure URL Callback.', array(
         '!link' => l(t('Hosting > Queues'), 'admin/hosting/queues'),
-        '!link2' => l(t('Hosting > DevShop Pull Settings'), 'admin/hosting/hosting_git_pull'),
+        '!link2' => l(t('Hosting > Git'), 'admin/hosting/git'),
       )),
       '#default_value' => isset($node->git['pull_method']) ? $node->git['pull_method'] : HOSTING_GIT_PULL_DISABLED,
       '#options' => array(
