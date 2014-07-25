@@ -42,7 +42,7 @@ GitHub Setup
 4. Click "WebHook URLs"
 5. Copy and paste your project's Git Pull Trigger URL into the URL field of the
    WebHook URLs page.
-6. Click "Test Hook" to run a test, then check your DevShop project to ensure a
+6. Click "Test Hook" to run a test, then check your hostmaster site to ensure a
    Pull Code task was triggered.
 
 
