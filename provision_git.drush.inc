@@ -285,8 +285,14 @@ function drush_provision_git_provision_verify_validate() {
 
       drush_log(dt("Platform path does not exist, cloning from Git"));
 
+      // Specify the given branch name, otherwise the default branch is used.
+      $branch_option = '';
+      if (!empty(d()->git_ref)) {
+        $branch_option = ' --branch ' . escapeshellarg(trim(d()->git_ref));
+      }
+
       $command = 'git clone --recursive '
-        . '--branch ' . escapeshellarg(trim(d()->git_ref))
+        . $branch_option
         . ' -- ' . escapeshellarg(trim(d()->repo_url)) . ' ' . escapeshellarg(d()->root);
 
       // Clone the repo.
