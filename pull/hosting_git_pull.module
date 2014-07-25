@@ -127,8 +127,8 @@ function hosting_git_pull_form_alter(&$form, &$form_state, $form_id) {
       '#default_value' => isset($node->git['pull_method']) ? $node->git['pull_method'] : HOSTING_GIT_PULL_DISABLED,
       '#options' => array(
         HOSTING_GIT_PULL_DISABLED => t('Pull disabled.'),
-        HOSTING_GIT_PULL_MANUAL => t('Pull only when manually starting a git-pull task.'),
-        HOSTING_GIT_PULL_QUEUE => t('Pull on queue (every minute).'),
+        HOSTING_GIT_PULL_MANUAL => t('Pull via a git-pull task.'),
+        HOSTING_GIT_PULL_QUEUE => t('Pull on queue (e.g. every minute).'),
         HOSTING_GIT_PULL_CALLBACK => t('Pull on URL Callback (ie. GitHub Webhook)'),
       ),
     );
