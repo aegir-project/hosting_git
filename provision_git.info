@@ -1,2 +1,2 @@
 name = "Provision Git"
-description = "Provides wrappers for provisiion.module to access Git commands."
+description = "Provides wrappers for provision.module to access Git commands."
