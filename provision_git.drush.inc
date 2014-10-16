@@ -335,7 +335,7 @@ function drush_provision_git_checkout($git_ref = '') {
     return drush_set_error('DRUSH_PROVISION_GIT_CHECKOUT_FAILED', dt("Git checkout failed: No git_ref specified."));
   }
 
-  drush_log(dt('Checking out git reference !git_ref'), array('!git_ref' => $git_ref), 'ok');
+  drush_log(dt('Checking out git reference !git_ref', array('!git_ref' => $git_ref), 'ok'));
 
   $command = "git checkout $git_ref";
 
