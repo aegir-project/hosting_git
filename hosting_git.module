@@ -54,12 +54,27 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
       '#weight' => -1,
     );
 
-    $form['git']['repo_url'] = array(
-      '#type' => 'textfield',
-      '#title' => 'Repository URL',
-      '#description' => t('The full URL that you would pass to <em>git clone</em>. Example:  git@github.com:username/project.git or https://github.com/username/project.git. Note that this repository must be accessible by the Aegir user.'),
-      '#default_value' => isset($node->git['repo_url']) ? $node->git['repo_url'] : '',
-    );
+    if (!isset($node->nid) || (!$node->verified && !isset($node->git['repo_url']))) {
+      $form['git']['repo_url'] = array(
+        '#type' => 'textfield',
+        '#title' => 'Repository URL',
+        '#description' => t('The full URL that you would pass to <em>git clone</em>. Example:  git@github.com:username/project.git or https://github.com/username/project.git. Note that this repository must be accessible by the Aegir user.'),
+        '#default_value' => isset($node->git['repo_url']) ? $node->git['repo_url'] : '',
+      );
+    }
+    else {
+      // display it
+      $form['git']['repo_url_display'] = array(
+        '#type' => 'item',
+        '#title' => t('Repo URL'),
+        '#markup' => $node->git['repo_url'],
+      );
+      // send it on form submission
+      $form['git']['repo_url'] = array(
+        '#type' => 'hidden',
+        '#value' => $node->git['repo_url'],
+      );
+    }
 
     $form['git']['git_ref'] = array(
       '#type' => 'textfield',
@@ -67,11 +82,6 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
       '#description' => t('If a branch or tag name is not supplied, the platform will be deployed from the default branch of the repository (usually master). This must match the Git branch or tag name exactly.'),
       '#default_value' => isset($node->git['git_ref']) ? $node->git['git_ref'] : '',
     );
-    // repo_url and branch are currently not editable.
-    if (!empty($node->nid)) {
-      $form['git']['git_ref']['#disabled'] = TRUE;
-      $form['git']['git_ref']['#description'] = $form['git']['repo_url']['#description'];
-    }
   }
 }
 
