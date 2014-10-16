@@ -184,11 +184,12 @@ function hosting_git_node_view($node) {
       '#weight' => 100,
       '#markup' => check_plain($node->git['repo_url']),
     );
+    $ref = $node->git['git_ref']? $node->git['git_ref']: t('Pending Verification');
     $node->content['info']['git_ref'] = array(
       '#type' => 'item',
       '#title' => t('Repository branch/tag'),
       '#weight' => 100,
-      '#markup' => check_plain($node->git['git_ref']),
+      '#markup' => $ref,
     );
   }
 }
