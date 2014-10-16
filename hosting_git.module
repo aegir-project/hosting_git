@@ -80,7 +80,8 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
       '#type' => 'textfield',
       '#title' => 'Branch or tag name',
       '#description' => t('If a branch or tag name is not supplied, the platform will be deployed from the default branch of the repository (usually master). This must match the Git branch or tag name exactly.'),
-      '#default_value' => isset($node->git['git_ref']) ? $node->git['git_ref'] : '',
+      '#required' => TRUE,
+      '#default_value' => isset($node->git['git_ref']) ? $node->git['git_ref'] : 'master',
     );
   }
 }
