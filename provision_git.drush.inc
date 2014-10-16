@@ -60,6 +60,24 @@ function provision_git_drush_command() {
       'force_repo_path_as_toplevel' => 'Stop Git from looking in parent directories. Defaults to FALSE.',
     ),
   );
+  $items['provision-git-clone'] = array(
+    'description' => 'Git clone a repo in a specified location.',
+    'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
+    'arguments' => array(
+      'git_url' => dt('The git repository to clone.'),
+      'path' => dt('The location where the git repository will be cloned.'),
+    ),
+  );
+  $items['provision-git-checkout'] = array(
+    'description' => 'Git checkout a branch or tag in a specified location.',
+    'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
+    'arguments' => array(
+      'git_ref' => dt('Parameter for the git checkout command'),
+    ),
+    'options' => array(
+      'new_branch' => "Optional: If the branch doesn't exist, create it. Equivalent to git checkout -b branchname"
+    )
+  );
   return $items;
 }
 
@@ -258,6 +276,81 @@ function drush_provision_git_reset() {
 }
 
 /**
+ * Implements the provision-git-clone command.
+ */
+function drush_provision_git_clone($git_url = '', $path = '') {
+
+  // Get URL and path from d()
+  // @TODO: Move to a validate hook.
+  if (!$git_url) {
+    $git_url = d()->repo_url;
+  }
+  if (!$path) {
+    $path = d()->root;
+  }
+  if (!$git_ref) {
+    $git_ref = d()->git_ref;
+  }
+
+  drush_log(dt('Cloning !url to !path'), array('!url' => $git_url, '!path' => $path, 'ok'));
+
+  if (is_dir($path)) {
+    return drush_set_error('DRUSH_PROVISION_GIT_CLONE_FAILED', dt('Directory already exists.'));
+  }
+
+  $command = 'git clone --recursive ';
+
+  if ($git_ref) {
+    $command .= ' --branch ' . escapeshellarg(trim($git_ref));
+  }
+  $command .= escapeshellarg(trim($git_url));
+  $command .= ' ' . escapeshellarg(trim($path));
+
+  // Try to perform the git clone
+  if (drush_shell_exec($command)) {
+    // Log the fact that it worked
+    drush_log(dt('Clone successful.'), 'ok');
+    drush_log(implode("\n", drush_shell_exec_output()), 'notice');
+  }
+  else {
+    // The command failed
+    return drush_set_error('DRUSH_PROVISION_GIT_CLONE_FAILED', dt("Git clone failed! \nThe specific errors are below:\n!errors", array('!errors' => implode("\n", drush_shell_exec_output()))));
+  }
+}
+
+/**
+ * Implements the provision-git_checkout command
+ */
+function drush_provision_git_checkout($git_ref = '') {
+
+  // Get URL and path from d()
+  // @TODO: Move to a validate hook.
+  if (!$git_ref) {
+    $git_ref = d()->git_ref;
+  }
+  $path = d()->root;
+
+  // Make sure there is a git ref
+  if (empty($git_ref)) {
+    return drush_set_error('DRUSH_PROVISION_GIT_CHECKOUT_FAILED', dt("Git checkout failed: No git_ref specified."));
+  }
+
+  drush_log(dt('Checking out git reference !git_ref'), array('!git_ref' => $git_ref), 'ok');
+
+  $command = "git checkout $git_ref";
+
+  // Try to perform the git checkout.
+  if (drush_shell_cd_and_exec($path, $command)) {
+    // Log the fact that it worked.
+    drush_log(dt('Checkout successful.'), 'ok');
+    drush_log(implode("\n", drush_shell_exec_output()), 'ok');
+  } else {
+    // The command failed.
+    return drush_set_error('DRUSH_PROVISION_GIT_CHECKOUT_FAILED', dt("Git checkout failed! \nThe specific errors are below:\n!errors", array('!errors' => implode("\n", drush_shell_exec_output()))));
+  }
+}
+
+/**
  * Implements the provision-git-add command.
  */
 function drush_provision_git_add($path = '') {
@@ -281,29 +374,16 @@ function drush_provision_git_add($path = '') {
  */
 function drush_provision_git_provision_verify_validate() {
   if (d()->type === 'platform') {
+
+    // If the platform path doesn't exist, we will clone it.
     if (!provision_file()->exists(d()->root)->status() && d()->deploy_from_git) {
-
-      drush_log(dt("Platform path does not exist, cloning from Git"));
-
-      // Specify the given branch name, otherwise the default branch is used.
-      $branch_option = '';
-      if (!empty(d()->git_ref)) {
-        $branch_option = ' --branch ' . escapeshellarg(trim(d()->git_ref));
-      }
-
-      $command = 'git clone --recursive '
-        . $branch_option
-        . ' -- ' . escapeshellarg(trim(d()->repo_url)) . ' ' . escapeshellarg(d()->root);
-
-      // Clone the repo.
-      if (drush_shell_exec($command)) {
-        drush_log(dt("Platform successfully cloned from Git"), 'success');
-      }
-      else {
-        // We send back the full output if something went wrong.
-        drush_log(dt('!output', array('!output' => implode("\n", drush_shell_exec_output()))), 'notice');
-        return drush_set_error("GIT_CLONE_FAILED", "Could not clone git repository.");
-      }
+      drush_log(dt("Platform path does not exist.  Invoking provision-git-clone."), 'ok');
+      provision_backend_invoke(d()->name, 'provision-git-clone');
+    }
+    // If the platform path does exist, checkout the selected branch or tag.
+    else {
+      drush_log(dt("Platform path exists.  Invoking provision-git-checkout."), 'ok');
+      provision_backend_invoke(d()->name, 'provision-git-checkout');
     }
   }
 }
