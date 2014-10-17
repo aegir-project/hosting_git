@@ -341,6 +341,7 @@ function drush_provision_git_checkout($git_ref = '') {
   $command = "git checkout $git_ref";
 
   // Try to perform the git checkout.
+  drush_log("Running $command", 'ok');
   if (drush_shell_cd_and_exec($path, $command)) {
     // Log the fact that it worked.
     drush_log(dt('Checkout successful.'), 'ok');
