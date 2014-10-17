@@ -151,6 +151,20 @@ function drush_provision_pre_provision_git_add() {
 }
 
 /**
+ * Pre provision-git-clone hook
+ */
+function drush_provision_pre_provision_git_clone() {
+  provision_git_is_repo();
+}
+
+/**
+ * Pre provision-git-checkout hook
+ */
+function drush_provision_pre_provision_git_checkout() {
+  provision_git_is_repo();
+}
+
+/**
  * Implements the provision-git-pull command.
  */
 function drush_provision_git_pull() {
@@ -375,10 +389,10 @@ function drush_provision_git_add($path = '') {
  * very inconveniently, run in the same function.
  */
 function drush_provision_git_provision_verify_validate() {
-  if (d()->type === 'platform') {
+  if (d()->type === 'platform' && d()->deploy_from_git) {
 
     // If the platform path doesn't exist, we will clone it.
-    if (!provision_file()->exists(d()->root)->status() && d()->deploy_from_git) {
+    if (!provision_file()->exists(d()->root)->status()) {
       drush_log(dt("Platform path does not exist.  Invoking provision-git-clone."), 'ok');
       provision_backend_invoke(d()->name, 'provision-git-clone');
     }
