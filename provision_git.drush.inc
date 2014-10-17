@@ -278,7 +278,7 @@ function drush_provision_git_reset() {
 /**
  * Implements the provision-git-clone command.
  */
-function drush_provision_git_clone($git_url = '', $path = '') {
+function drush_provision_git_clone($git_url = '', $path = '', $git_ref = '') {
 
   // Get URL and path from d()
   // @TODO: Move to a validate hook.
@@ -292,25 +292,26 @@ function drush_provision_git_clone($git_url = '', $path = '') {
     $git_ref = d()->git_ref;
   }
 
-  drush_log(dt('Cloning !url to !path'), array('!url' => $git_url, '!path' => $path, 'ok'));
+  drush_log(dt('Cloning !url to !path', array('!url' => $git_url, '!path' => $path, 'ok')));
 
   if (is_dir($path)) {
     return drush_set_error('DRUSH_PROVISION_GIT_CLONE_FAILED', dt('Directory already exists.'));
   }
 
   $command = 'git clone --recursive ';
+  $command .= escapeshellarg(trim($git_url));
+  $command .= ' ' . escapeshellarg(trim($path));
 
   if ($git_ref) {
     $command .= ' --branch ' . escapeshellarg(trim($git_ref));
   }
-  $command .= escapeshellarg(trim($git_url));
-  $command .= ' ' . escapeshellarg(trim($path));
 
   // Try to perform the git clone
+  drush_log("Running $command", 'ok');
   if (drush_shell_exec($command)) {
     // Log the fact that it worked
     drush_log(dt('Clone successful.'), 'ok');
-    drush_log(implode("\n", drush_shell_exec_output()), 'notice');
+    drush_log(implode("\n", drush_shell_exec_output()), 'ok');
   }
   else {
     // The command failed
