@@ -41,9 +41,6 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
     // Get node object.
     $node = $form['#node'];
 
-    // Default collapse from makefile fieldset
-    $form['frommakefile']['#collapsed'] = TRUE;
-
     $form['#validate'][] = 'hosting_git_node_form_validate';
     $form['git'] = array(
       '#type' => 'fieldset',
@@ -83,6 +80,14 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
       '#required' => TRUE,
       '#default_value' => isset($node->git['git_ref']) ? $node->git['git_ref'] : 'master',
     );
+
+    // Default collapse one fieldset based on the current node.
+    if (empty($node->frommakefile['makefile'])) {
+      $form['frommakefile']['#collapsed'] = TRUE;
+    }
+    elseif (empty($node->git['repo_url'])) {
+      $form['git']['#collapsed'] = TRUE;
+    }
   }
 }
 
