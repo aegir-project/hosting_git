@@ -15,6 +15,7 @@ function drush_hosting_git_pre_hosting_task($task) {
   $task = &drush_get_context('HOSTING_TASK');
 
   // Only work on selected task types.
+  // TODO: Be consistent with dashes vs underscores in task names
   if (!in_array($task->task_type, array('git-pull', 'git_clone', 'git_checkout'))) {
     return;
   }
@@ -54,6 +55,7 @@ function hosting_git_hosting_site_context_options(&$task) {
   $task->context_options['git_ref'] = '';
 
   // If we're actually provisioning from Git, populate real data.
+  // TODO: Provision_Service_git::subscribe_site() appears to be missing...
   if (!empty($task->ref->git['repo_url'])) {
     $task->context_options['repo_url'] = $task->ref->git['repo_url'];
     $task->context_options['git_ref'] = $task->ref->git['git_ref'];
@@ -64,6 +66,7 @@ function hosting_git_hosting_site_context_options(&$task) {
  * Implements hook_drush_context_import().
  */
 function hosting_git_drush_context_import($context, &$node) {
+  // TODO: also support importing site contexts.
   if ($context->type == 'platform' && $context->deploy_from_git) {
     $node->git['repo_url'] = $context->repo_url;
     $node->git['git_ref'] = $context->git_ref;

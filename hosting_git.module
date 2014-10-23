@@ -38,11 +38,21 @@ function hosting_git_menu() {
  */
 function hosting_git_form_alter(&$form, &$form_state, $form_id) {
   if ($form_id == 'platform_node_form' || $form_id == 'site_node_form') {
+
+    if ($form_id == 'platform_node_form') {
+      $node_type = 'platform';
+      $deploy_description = t('You may deploy this platform from a Git repository. This functionality cannot be combined with a Makefile.');
+      // Default collapse 'from makefile' fieldset
+      $form['frommakefile']['#collapsed'] = TRUE;
+    }
+
+    if ($form_id == 'site_node_form') {
+      $node_type = 'site';
+      $deploy_description = t('You may deploy this site from a Git repository.');
+    }
+
     // Get node object.
     $node = $form['#node'];
-
-    // Default collapse from makefile fieldset
-    $form['frommakefile']['#collapsed'] = TRUE;
 
     $form['#validate'][] = 'hosting_git_node_form_validate';
     $form['git'] = array(
@@ -50,7 +60,7 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
       '#tree' => TRUE,
       '#title' => t('Deploy from Git'),
       '#collapsible' => TRUE,
-      '#description' => t('You may deploy this platform from a Git repository. This functionality cannot be combined with a Makefile.'),
+      '#description' => $deploy_description,
       '#weight' => -1,
     );
 
@@ -64,7 +74,7 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
     $form['git']['git_ref'] = array(
       '#type' => 'textfield',
       '#title' => 'Branch or tag name',
-      '#description' => t('If a branch or tag name is not supplied, the platform will be deployed from <em>master</em>. This must match the Git branch or tag name exactly.'),
+      '#description' => t('If a branch or tag name is not supplied, the @node_type will be deployed from <em>master</em>. This must match the Git branch or tag name exactly.', array('@node_type' => $node_type)),
       '#default_value' => isset($node->git['git_ref']) ? $node->git['git_ref'] : '',
     );
     // repo_url and branch are currently not editable.
