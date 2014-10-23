@@ -75,13 +75,13 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
       '#type' => 'textfield',
       '#title' => 'Branch or tag name',
       '#description' => t('If a branch or tag name is not supplied, the @node_type will be deployed from <em>master</em>. This must match the Git branch or tag name exactly.', array('@node_type' => $node_type)),
-      '#default_value' => isset($node->git['git_ref']) ? $node->git['git_ref'] : '',
+      '#default_value' => isset($node->git['git_ref']) ? $node->git['git_ref'] : 'master',
     );
     // repo_url and branch are currently not editable.
-    if (!empty($node->nid)) {
-      $form['git']['git_ref']['#disabled'] = TRUE;
-      $form['git']['git_ref']['#description'] = $form['git']['repo_url']['#description'];
-    }
+#    if (!empty($node->nid)) {
+#      $form['git']['git_ref']['#disabled'] = TRUE;
+#      $form['git']['git_ref']['#description'] = $form['git']['git_ref']['#description'];
+#    }
   }
 }
 
@@ -167,7 +167,7 @@ function _hosting_git_node_load_defaults(&$node) {
   }
 
   if (!isset($node->git['git_ref'])) {
-    $node->git['git_ref'] = '';
+    $node->git['git_ref'] = 'master';
   }
 }
 
