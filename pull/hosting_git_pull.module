@@ -118,18 +118,18 @@ function hosting_git_pull_form_alter(&$form, &$form_state, $form_id) {
     $node = $form['#node'];
 
     $form['git']['pull_method'] = array(
-      '#title' => 'Automatic Git Pull Method',
+      '#title' => t('Git pull method'),
       '#type' => 'radios',
-      '#description' => t('Choose the method of regularly calling "Pull Code". See !link to configure the queue. See !link2 to configure URL Callback.', array(
+      '#description' => t('Choose the method by which "Git Pull" can be run. See !link to configure the queue. See !link2 to configure URL Callback.', array(
         '!link' => l(t('Hosting > Queues'), 'admin/hosting/queues'),
         '!link2' => l(t('Hosting > Git'), 'admin/hosting/git'),
       )),
       '#default_value' => isset($node->git['pull_method']) ? $node->git['pull_method'] : HOSTING_GIT_PULL_DISABLED,
       '#options' => array(
         HOSTING_GIT_PULL_DISABLED => t('Pull disabled.'),
-        HOSTING_GIT_PULL_MANUAL => t('Pull via a git-pull task.'),
-        HOSTING_GIT_PULL_QUEUE => t('Pull on queue (e.g. every minute).'),
-        HOSTING_GIT_PULL_CALLBACK => t('Pull on URL Callback (ie. GitHub Webhook)'),
+        HOSTING_GIT_PULL_MANUAL => t('Pull on "Git Pull" task.'),
+        HOSTING_GIT_PULL_QUEUE => t('Pull on queue (i.e. every minute).'),
+        HOSTING_GIT_PULL_CALLBACK => t('Pull on URL Callback (i.e. GitHub Webhook)'),
       ),
     );
     if (_hosting_git_site_or_platform_enabled($node)) {
