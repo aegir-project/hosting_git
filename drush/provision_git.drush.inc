@@ -154,7 +154,7 @@ function drush_provision_pre_provision_git_add() {
  * Pre provision-git-clone hook
  */
 function drush_provision_pre_provision_git_clone() {
-  provision_git_is_repo();
+#  provision_git_is_repo();
 }
 
 /**
@@ -300,7 +300,15 @@ function drush_provision_git_clone($git_url = '', $path = '', $git_ref = '') {
     $git_url = d()->repo_url;
   }
   if (!$path) {
-    $path = d()->root;
+    switch (d()->type) {
+      case 'site':
+        $path = d()->site_path;
+        break;
+      case 'platform':
+      default:
+        $path = d()->root;
+        break;
+    }
   }
   if (!$git_ref) {
     $git_ref = d()->git_ref;
@@ -389,20 +397,65 @@ function drush_provision_git_add($path = '') {
  * very inconveniently, run in the same function.
  */
 function drush_provision_git_provision_verify_validate() {
-  if (d()->type === 'platform' && d()->deploy_from_git) {
+  if (in_array(d()->type, array('site', 'platform')) && d()->deploy_from_git) {
 
+    switch (d()->type) {
+      case 'site':
+        $context_type = 'Site';
+        $path_exists = provision_file()->exists(d()->site_path)->status();
+        // If there's an issue with the site git repo, we end up doing a
+        // checkout on the platform, if we aren't careful.
+        drush_set_option('force_repo_path_as_toplevel', TRUE);
+        break;
+      case 'platform':
+      default:
+        $context_type = 'Platform';
+        $path_exists = provision_file()->exists(d()->root)->status();
+        break;
+    }
     // If the platform path doesn't exist, we will clone it.
-    if (!provision_file()->exists(d()->root)->status()) {
-      drush_log(dt("Platform path does not exist.  Invoking provision-git-clone."), 'ok');
+    // Sites aren't verified on install, so we need to clone the repo in
+    // drush_provision_git_provision_install_validate() instead.
+    if (!$path_exists) {
+      drush_log(dt("$context_type path does not exist. Invoking provision-git-clone."), 'ok');
       provision_backend_invoke(d()->name, 'provision-git-clone');
     }
-    // If the platform path does exist, checkout the selected branch or tag.
+    // If the platform or site path does exist, checkout the selected branch or tag.
     else {
-      drush_log(dt("Platform path exists.  Invoking provision-git-checkout."), 'ok');
+      drush_log(dt("$context_type path exists. Invoking provision-git-checkout."), 'ok');
       provision_backend_invoke(d()->name, 'provision-git-checkout');
     }
   }
 }
+
+/**
+ * Implements drush_hook_provision_install_validate().
+ *
+ * The site directory is created in an implementation of
+ * drush_hook_pre_COMMAND(). So to clone the site repo first, we need to do it
+ * in an earlier hook.
+ */
+function drush_provision_git_provision_install_validate() {
+  if (d()->type === 'site' && d()->deploy_from_git) {
+    drush_set_option('force_repo_path_as_toplevel', TRUE);
+    drush_log(dt("Cloning site from: " . d()->repo_url), 'ok');
+    provision_backend_invoke(d()->name, 'provision-git-clone');
+  }
+}
+
+/**
+ * Implements hook_provision_drupal_create_directories_alter().
+ */
+function provision_git_provision_drupal_create_directories_alter(&$mkdir, $url) {
+  if (d()->type === 'site' && d()->deploy_from_git) {
+    // Since we're cloning these directories, don't chmod/chgrp them.
+    unset($mkdir["sites/$url"]);
+    unset($mkdir["sites/$url/modules"]);
+    unset($mkdir["sites/$url/themes"]);
+    unset($mkdir["sites/$url/libraries"]);
+  }
+}
+
 
 /**
  * Register our directory as a place to find provision classes.
