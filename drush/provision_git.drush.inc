@@ -154,7 +154,7 @@ function drush_provision_pre_provision_git_add() {
  * Pre provision-git-clone hook
  */
 function drush_provision_pre_provision_git_clone() {
-  provision_git_is_repo();
+  // Nothing to do here.
 }
 
 /**
