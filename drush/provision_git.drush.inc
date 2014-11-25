@@ -351,7 +351,12 @@ function drush_provision_git_checkout($git_ref = '') {
   if (!$git_ref) {
     $git_ref = d()->git_ref;
   }
-  $path = d()->root;
+  if (d()->type == 'site') {
+    $path = d()->site_path;
+  }
+  else {
+    $path = d()->root;
+  }
 
   // Make sure there is a git ref
   if (empty($git_ref)) {
