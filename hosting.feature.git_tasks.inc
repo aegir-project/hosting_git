@@ -35,6 +35,17 @@ function hosting_git_hosting_feature() {
     'status' => HOSTING_FEATURE_DISABLED,
     'module' => 'hosting_git_pull',
     'group' => 'experimental',
+    'role_permissions' => array(
+      'aegir platform manager' => array(
+        'create platform git-pull task',
+      ),
+      'aegir account manager' => array(
+        'create git-pull task',
+      ),
+      'aegir client' => array(
+        'create git-pull task',
+      ),
+    )
   );
 
   return $features;

@@ -68,11 +68,11 @@ function hosting_git_pull_permission() {
   return array(
     'create git-pull task' => array(
       'title' => t('create git-pull task'),
-      'description' => t('create git-pull task'),
+      'description' => t('Create a git-pull task for sites'),
     ),
     'create platform git-pull task' => array(
       'title' => t('create platform git-pull task'),
-      'description' => t('create platform git-pull task'),
+      'description' => t('Create a git-pull task for platforms'),
     ),
   );
 }
