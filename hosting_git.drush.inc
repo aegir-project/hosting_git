@@ -15,6 +15,7 @@ function drush_hosting_git_pre_hosting_task($task) {
   $task = &drush_get_context('HOSTING_TASK');
 
   // Only work on selected task types.
+  // TODO: Be consistent with dashes vs underscores in task names
   if (!in_array($task->task_type, array('git-pull', 'git_clone', 'git_checkout'))) {
     return;
   }
@@ -35,7 +36,7 @@ function drush_hosting_git_pre_hosting_task($task) {
 function hosting_git_hosting_platform_context_options(&$task) {
   // Set some defaults.
   $task->context_options['deploy_from_git'] = FALSE;
-  $task->context_options['repo_branch'] = '';
+  $task->context_options['git_ref'] = '';
 
   // If we're actually provisioning from Git, populate real data.
   if (!empty($task->ref->git['repo_url'])) {
@@ -47,6 +48,10 @@ function hosting_git_hosting_platform_context_options(&$task) {
 
 /**
  * Implements hook_hosting_TASK_OBJECT_context_options().
+ *
+ * TODO: since this is identical to hosting_git_hosting_platform_context_options(),
+ * should we just call that instead? Will we have different git info for sites
+ * and platforms?
  */
 function hosting_git_hosting_site_context_options(&$task) {
   // Set some defaults.
@@ -56,6 +61,7 @@ function hosting_git_hosting_site_context_options(&$task) {
   // If we're actually provisioning from Git, populate real data.
   if (!empty($task->ref->git['repo_url'])) {
     $task->context_options['repo_url'] = $task->ref->git['repo_url'];
+    $task->context_options['deploy_from_git'] = TRUE;
     $task->context_options['git_ref'] = $task->ref->git['git_ref'];
   }
 }
@@ -64,7 +70,7 @@ function hosting_git_hosting_site_context_options(&$task) {
  * Implements hook_drush_context_import().
  */
 function hosting_git_drush_context_import($context, &$node) {
-  if ($context->type == 'platform' && $context->deploy_from_git) {
+  if (in_array($context->type, array('site', 'platform')) && $context->deploy_from_git) {
     $node->git['repo_url'] = $context->repo_url;
     $node->git['git_ref'] = $context->git_ref;
   }

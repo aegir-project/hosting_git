@@ -12,10 +12,10 @@ function hosting_git_schema() {
   $schema = array();
 
   $schema['hosting_git'] = array(
-    'description' => 'A mapping between platform node IDs and Git data',
+    'description' => 'A mapping between platform or site node IDs and Git data',
     'fields' => array(
       'nid' => array(
-        'description' => 'The platform nid from the {node} table.',
+        'description' => 'The platform or site nid from the {node} table.',
         'type' => 'int',
         'not null' => TRUE,
       ),
