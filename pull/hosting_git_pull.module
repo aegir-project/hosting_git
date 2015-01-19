@@ -117,6 +117,11 @@ function hosting_git_pull_form_alter(&$form, &$form_state, $form_id) {
     // Get node object.
     $node = $form['#node'];
 
+    // Bail out early of the hosting_git module has not already added it's fieldset.
+    if (!isset($form['git'])) {
+      return;
+    }
+
     $form['git']['pull_method'] = array(
       '#title' => t('Git pull method'),
       '#type' => 'radios',

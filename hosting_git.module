@@ -39,6 +39,15 @@ function hosting_git_menu() {
 function hosting_git_form_alter(&$form, &$form_state, $form_id) {
   if ($form_id == 'platform_node_form' || $form_id == 'site_node_form') {
 
+    // Get node object.
+    $node = $form['#node'];
+
+    // Skip Git forms for exsisting sites without a repo URL.
+    // Adding one later is currently not supported.
+    if (isset($node->nid) && $node->verified && empty($node->git['repo_url'])) {
+      return;
+    }
+
     if ($form_id == 'platform_node_form') {
       $node_type = 'platform';
       $deploy_description = t('You may deploy this platform from a Git repository. This functionality cannot be combined with a Makefile.');
@@ -50,9 +59,6 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
       $node_type = 'site';
       $deploy_description = t('You may deploy this site from a Git repository.');
     }
-
-    // Get node object.
-    $node = $form['#node'];
 
     $form['#validate'][] = 'hosting_git_node_form_validate';
     $form['git'] = array(
