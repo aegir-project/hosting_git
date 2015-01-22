@@ -48,7 +48,7 @@ function hosting_git_pull_callback($name, $hash) {
 
   // Log It, only if there is a status.
   if (isset($status)) {
-    db_update('hosting_git')
+    db_update('hosting_git_pull')
       ->fields(array(
         'last_pull' => REQUEST_TIME,
         'last_pull_status' => $status,
