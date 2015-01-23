@@ -169,7 +169,6 @@ function hosting_git_pull_form_alter(&$form, &$form_state, $form_id) {
     // Add some help text on what to fill in.
     $items = array();
     $items[] = t('Enter the IP addresses that are allowed to trigger a "Pull Code" task. You may specify address ranges using CIDR notation (e.g. 192.168.1.0/24).');
-    $items[] = t('GitHub post-receive callback servers are: %github_ips.', array('%github_ips' => variable_get('hosting_git_pull_webhook_ip_acl', HOSTING_GIT_WEBHOOK_DEFAULT_ALLOWED_IPS)));
     $items[] = t("Your local computer's IP address is %ip.", array('%ip' => ip_address()));
 
     // Show the last IP used to call our webhook. To make adding it easier.
