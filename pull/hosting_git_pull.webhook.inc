@@ -59,11 +59,11 @@ function hosting_git_pull_callback($name, $hash) {
   }
 
   // Output a message, no matter what.
-  watchdog('hosting_git', $message, array(), WATCHDOG_INFO);
+  watchdog('hosting_git_pull', $message, array(), WATCHDOG_INFO);
   print $message;
 
   // Save a variable to help when using the settings page.
-  variable_set('hosting_git_webhook_last_ip', ip_address());
+  variable_set('hosting_git_pull_webhook_last_ip', ip_address());
 }
 
 /**
