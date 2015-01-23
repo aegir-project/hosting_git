@@ -83,6 +83,10 @@ function hosting_git_pull_ip_match($ip, $list) {
     }
     @list($net, $mask) = explode('/', trim($cidr));
     if (isset($mask)) {
+      if ($mask > 32) {
+        // IPv6 is not supported... yet.
+        return FALSE;
+      }
       $bitmask = ~((1 << (32 - $mask)) - 1);
       if ((ip2long($net) & $bitmask) == (ip2long($ip) & $bitmask)) {
         return TRUE;
