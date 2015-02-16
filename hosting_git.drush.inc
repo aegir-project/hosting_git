@@ -48,22 +48,9 @@ function hosting_git_hosting_platform_context_options(&$task) {
 
 /**
  * Implements hook_hosting_TASK_OBJECT_context_options().
- *
- * TODO: since this is identical to hosting_git_hosting_platform_context_options(),
- * should we just call that instead? Will we have different git info for sites
- * and platforms?
  */
 function hosting_git_hosting_site_context_options(&$task) {
-  // Set some defaults.
-  $task->context_options['repo_url'] = FALSE;
-  $task->context_options['git_ref'] = '';
-
-  // If we're actually provisioning from Git, populate real data.
-  if (!empty($task->ref->git['repo_url'])) {
-    $task->context_options['repo_url'] = $task->ref->git['repo_url'];
-    $task->context_options['deploy_from_git'] = TRUE;
-    $task->context_options['git_ref'] = $task->ref->git['git_ref'];
-  }
+  hosting_git_hosting_platform_context_options($task);
 }
 
 /**
