@@ -19,6 +19,15 @@ function provision_git_drush_command() {
     ),
     'aliases' => array('pull'),
   );
+  $items['provision-git-fetch'] = array(
+    'description' => 'Executes "git fetch".',
+    'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
+    'options' => array(
+      'repo_path' => 'Optional: force a repository path. Defaults to the site or platform dir.',
+      'force_repo_path_as_toplevel' => 'Stop Git from looking in parent directories. Defaults to FALSE.',
+    ),
+    'aliases' => array('fetch'),
+  );
   $items['provision-git-push'] = array(
     'description' => 'Executes "git push".',
     'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
@@ -196,6 +205,25 @@ function drush_provision_git_pull() {
 }
 
 /**
+ * Implements the provision-git-fetch command.
+ */
+function drush_provision_git_fetch() {
+  $repo_path = drush_get_option('repo_path');
+  $target = d()->name;
+
+  if (drush_shell_cd_and_exec($repo_path, 'git fetch')) {
+    drush_log(dt('Git repository !path fetched.', array('!path' => $repo_path)), 'ok');
+    $out = drush_shell_exec_output();
+    if ($out) {
+      drush_log(implode("\n", $out), 'ok');
+    }
+  }
+  else {
+    return drush_set_error('DRUSH_PROVISION_GIT_FETCH_FAILED', dt("Git fetch failed in !path.\nThe specific errors are below:\n!errors", array('!path' => $repo_path, '!errors' => implode("\n", drush_shell_exec_output()))));
+  }
+}
+
+/**
  * Implements the provision-git-push command.
  */
 function drush_provision_git_push() {
@@ -363,9 +391,11 @@ function drush_provision_git_checkout($git_ref = '') {
     return drush_set_error('DRUSH_PROVISION_GIT_CHECKOUT_FAILED', dt("Git checkout failed: No git_ref specified."));
   }
 
+  provision_backend_invoke(d()->name, 'provision-git-fetch', array(), array('repo_path' => $path));
+
   drush_log(dt('Checking out git reference !git_ref', array('!git_ref' => $git_ref), 'ok'));
 
-  $command = "git checkout $git_ref";
+  $command = "git checkout " . escapeshellarg(trim($git_ref));
 
   // Try to perform the git checkout.
   drush_log("Running $command", 'ok');
