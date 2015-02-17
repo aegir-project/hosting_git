@@ -179,7 +179,7 @@ function drush_provision_git_pull() {
   // Execute git pull --rebase
   // @TODO: make rebase optional as well??  Haven't thought this through yet.
   if (drush_shell_cd_and_exec($repo_path, 'git pull --rebase')) {
-    drush_log(dt('Git repository pulled.', array('!path' => $repo_path)), 'ok');
+    drush_log(dt('Git repository !path pulled.', array('!path' => $repo_path)), 'ok');
     drush_log(implode("\n", drush_shell_exec_output()), 'ok');
 
     // Submodule in git? lets update those.
