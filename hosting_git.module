@@ -77,6 +77,13 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
         '#description' => t('The full URL that you would pass to <em>git clone</em>. Example:  git@github.com:username/project.git or https://github.com/username/project.git. Note that this repository must be accessible by the Aegir user.'),
         '#default_value' => isset($node->git['repo_url']) ? $node->git['repo_url'] : '',
       );
+
+    $form['git']['git_ref'] = array(
+      '#type' => 'textfield',
+      '#title' => 'Branch or tag name',
+      '#description' => t('If a branch or tag name is not supplied, the @node_type will be deployed from <em>master</em>. This must match the Git branch or tag name exactly.', array('@node_type' => $node_type)),
+      '#default_value' => isset($node->git['git_ref']) ? $node->git['git_ref'] : 'master',
+    );
     }
     else {
       // display it
@@ -85,19 +92,13 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
         '#title' => t('Repo URL'),
         '#markup' => $node->git['repo_url'],
       );
-      // send it on form submission
-      $form['git']['repo_url'] = array(
-        '#type' => 'hidden',
-        '#value' => $node->git['repo_url'],
+      $form['git']['git_ref_display'] = array(
+        '#type' => 'item',
+        '#title' => 'Branch or tag name',
+        '#markup' => isset($node->git['git_ref']) ? $node->git['git_ref'] : 'master',
+        '#description' => 'See ' . l('this issue', 'https://www.drupal.org/node/2226615') . ' for ways to update this value.'
       );
     }
-
-    $form['git']['git_ref'] = array(
-      '#type' => 'textfield',
-      '#title' => 'Branch or tag name',
-      '#description' => t('If a branch or tag name is not supplied, the @node_type will be deployed from <em>master</em>. This must match the Git branch or tag name exactly.', array('@node_type' => $node_type)),
-      '#default_value' => isset($node->git['git_ref']) ? $node->git['git_ref'] : 'master',
-    );
 
     // Default collapse one fieldset based on the current node.
     if (empty($node->frommakefile['makefile'])) {
