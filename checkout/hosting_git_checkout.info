@@ -1,0 +1,6 @@
+name = Git checkout tasks
+description = Allows access to the checkout task
+package = Hosting
+dependencies[] = hosting_site
+dependencies[] = hosting_git
+core = 7.x

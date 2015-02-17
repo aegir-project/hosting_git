@@ -403,6 +403,8 @@ function drush_provision_git_checkout($git_ref = '') {
     // Log the fact that it worked.
     drush_log(dt('Checkout successful.'), 'ok');
     drush_log(implode("\n", drush_shell_exec_output()), 'ok');
+
+    _provision_git_update_git_meta_data();
   } else {
     // The command failed.
     return drush_set_error('DRUSH_PROVISION_GIT_CHECKOUT_FAILED', dt("Git checkout failed! \nThe specific errors are below:\n!errors", array('!errors' => implode("\n", drush_shell_exec_output()))));
@@ -437,14 +439,17 @@ function drush_provision_git_provision_verify_validate() {
     switch (d()->type) {
       case 'site':
         $context_type = 'Site';
+        $repo_path = d()->site_path;
         $path_exists = provision_file()->exists(d()->site_path)->status();
         // If there's an issue with the site git repo, we end up doing a
         // checkout on the platform, if we aren't careful.
         drush_set_option('force_repo_path_as_toplevel', TRUE);
         break;
+
       case 'platform':
       default:
         $context_type = 'Platform';
+        $repo_path = d()->root;
         $path_exists = provision_file()->exists(d()->root)->status();
         break;
     }
@@ -454,11 +459,6 @@ function drush_provision_git_provision_verify_validate() {
     if (!$path_exists) {
       drush_log(dt("$context_type path does not exist. Invoking provision-git-clone."), 'ok');
       provision_backend_invoke(d()->name, 'provision-git-clone');
-    }
-    // If the platform or site path does exist, checkout the selected branch or tag.
-    else {
-      drush_log(dt("$context_type path exists. Invoking provision-git-checkout."), 'ok');
-      provision_backend_invoke(d()->name, 'provision-git-checkout');
     }
   }
 }
@@ -477,6 +477,43 @@ function drush_provision_git_provision_install_validate() {
     provision_backend_invoke(d()->name, 'provision-git-clone');
   }
 }
+
+/**
+ * Implements drush_hook_post_COMMAND().
+ */
+function drush_provision_git_post_provision_verify() {
+  _provision_git_update_git_meta_data();
+}
+
+
+/**
+ * Update the drush context with the git_url and current git_ref.
+ */
+function _provision_git_update_git_meta_data() {
+  if (in_array(d()->type, array('site', 'platform')) && d()->deploy_from_git) {
+
+    switch (d()->type) {
+      case 'site':
+        $repo_path = d()->site_path;
+        break;
+
+      case 'platform':
+      default:
+        $repo_path = d()->root;
+        break;
+    }
+
+    if (drush_shell_cd_and_exec($repo_path, 'git config --local --get remote.origin.url')) {
+      $repo_url = implode("\n", drush_shell_exec_output());
+      drush_set_option('repo_url', $repo_url);
+    }
+    if (drush_shell_cd_and_exec($repo_path, 'git rev-parse --abbrev-ref HEAD')) {
+      $git_ref = implode("\n", drush_shell_exec_output());
+      drush_set_option('git_ref', $git_ref);
+    }
+  }
+}
+
 
 /**
  * Implements hook_provision_drupal_create_directories_alter().

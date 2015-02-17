@@ -48,5 +48,24 @@ function hosting_git_hosting_feature() {
     )
   );
 
+  $features['git_checkout'] = array(
+    'title' => t('Git checkout task'),
+    'description' => t('Enables git checkout tasks on sites and platforms.'),
+    'status' => HOSTING_FEATURE_DISABLED,
+    'module' => 'hosting_git_checkout',
+    'group' => 'experimental',
+    'role_permissions' => array(
+      'aegir platform manager' => array(
+        'create platform git-checkout task',
+      ),
+      'aegir account manager' => array(
+        'create git-checkout task',
+      ),
+      'aegir client' => array(
+        'create git-checkout task',
+      ),
+    )
+  );
+
   return $features;
 }
