@@ -51,7 +51,7 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
     if ($form_id == 'platform_node_form') {
       $node_type = 'platform';
       $deploy_description = t('You may deploy this platform from a Git repository. This functionality cannot be combined with a Makefile.');
-      // Default collapse 'from makefile' fieldset
+      // Default collapse 'from makefile' fieldset.
       $form['frommakefile']['#collapsed'] = TRUE;
     }
 
@@ -78,15 +78,15 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
         '#default_value' => isset($node->git['repo_url']) ? $node->git['repo_url'] : '',
       );
 
-    $form['git']['git_ref'] = array(
-      '#type' => 'textfield',
-      '#title' => 'Branch or tag name',
-      '#description' => t('If a branch or tag name is not supplied, the @node_type will be deployed from <em>master</em>. This must match the Git branch or tag name exactly.', array('@node_type' => $node_type)),
-      '#default_value' => isset($node->git['git_ref']) ? $node->git['git_ref'] : 'master',
-    );
+      $form['git']['git_ref'] = array(
+        '#type' => 'textfield',
+        '#title' => 'Branch or tag name',
+        '#description' => t('If a branch or tag name is not supplied, the @node_type will be deployed from <em>master</em>. This must match the Git branch or tag name exactly.', array('@node_type' => $node_type)),
+        '#default_value' => isset($node->git['git_ref']) ? $node->git['git_ref'] : 'master',
+      );
     }
     else {
-      // display it
+      // Display it.
       $form['git']['repo_url_display'] = array(
         '#type' => 'item',
         '#title' => t('Repo URL'),
@@ -96,7 +96,7 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
         '#type' => 'item',
         '#title' => 'Branch or tag name',
         '#markup' => isset($node->git['git_ref']) ? $node->git['git_ref'] : 'master',
-        '#description' => 'See ' . l('this issue', 'https://www.drupal.org/node/2226615') . ' for ways to update this value.'
+        '#description' => 'Use a checkout task to change this value.',
       );
     }
 
@@ -219,7 +219,7 @@ function hosting_git_node_view($node) {
       '#weight' => 100,
       '#markup' => check_plain($node->git['repo_url']),
     );
-    $ref = $node->git['git_ref']? $node->git['git_ref']: t('Pending Verification');
+    $ref = $node->git['git_ref'] ? $node->git['git_ref'] : t('Pending Verification');
     $node->content['info']['git_ref'] = array(
       '#type' => 'item',
       '#title' => t('Git reference'),
@@ -236,7 +236,7 @@ function hosting_git_node_view($node) {
  */
 function _hosting_git_isdirempty($dir) {
   if ($handle = @opendir($dir)) {
-    // open directory.
+    // Open directory.
     while (($file = readdir($handle)) !== FALSE) {
       if ($file != "." && $file != "..") {
         closedir($handle); // Close directory.
@@ -248,6 +248,11 @@ function _hosting_git_isdirempty($dir) {
   return TRUE;
 }
 
+/**
+ * Get the path to the site specific directory.
+ *
+ * e.g. /var/aegir/platforms/drupal-7.x/sites/example.com
+ */
 function _hosting_git_getsitepath($node) {
   // Select the platform publish_path for $node->platform.
   $platform_publishpath = db_query("SELECT publish_path FROM {hosting_platform} WHERE nid = :nid", array(':nid' => $node->platform))->fetchField();
@@ -260,21 +265,13 @@ function _hosting_git_getsitepath($node) {
   }
 }
 
-function _hosting_git_getgitlocations() {
-  // TODO Should we make this configurable?
-  return array(
-    '.' => t('Site specific folder root'),
-    'modules' => t('Modules'),
-    'themes' => t('Themes'),
-    'libraries' => t('Libraries'),
-  );
-}
-
 /**
  * Test to see if a platform or site node has an enabled status.
  *
  * @param object $node
- * @return boolean
+ *   Node object
+ *
+ * @return bool
  */
 function _hosting_git_site_or_platform_enabled($node) {
   return (

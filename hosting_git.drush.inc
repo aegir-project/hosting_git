@@ -15,8 +15,7 @@ function drush_hosting_git_pre_hosting_task($task) {
   $task = &drush_get_context('HOSTING_TASK');
 
   // Only work on selected task types.
-  // TODO: Be consistent with dashes vs underscores in task names
-  if (!in_array($task->task_type, array('git-pull', 'git_clone', 'git-checkout'))) {
+  if (!in_array($task->task_type, array('git-pull', 'git-checkout'))) {
     return;
   }
 
@@ -76,7 +75,8 @@ function hosting_git_drush_context_import($context, &$node) {
 function hosting_git_post_hosting_git_checkout_task($task, $data) {
   hosting_git_post_hosting_verify_task($task, $data);
 
-  // Save the node, hosting_site_post_hosting_verify_task does that for a verify task but not for checkout.
+  // Save the node, hosting_site_post_hosting_verify_task does that
+  // for a verify task but not for checkout.
   node_save($task->ref);
 }
 
@@ -90,4 +90,3 @@ function hosting_git_post_hosting_verify_task($task, $data) {
   $node->git['repo_url'] = $context['repo_url'];
   $node->git['git_ref'] = $context['git_ref'];
 }
-
