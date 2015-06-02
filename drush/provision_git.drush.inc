@@ -521,7 +521,7 @@ function _provision_git_update_git_meta_data() {
 function provision_git_provision_drupal_create_directories_alter(&$mkdir, $url) {
   if (d()->type === 'site' && d()->deploy_from_git) {
     // Since we're cloning these directories, don't chmod/chgrp them.
-    unset($mkdir["sites/$url"]);
+    // We still need sites/$url as it gets 0555 permission otherwise [#2494113].
     unset($mkdir["sites/$url/modules"]);
     unset($mkdir["sites/$url/themes"]);
     unset($mkdir["sites/$url/libraries"]);
