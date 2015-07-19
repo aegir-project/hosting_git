@@ -26,7 +26,7 @@ function hosting_git_hosting_feature() {
     // associate with a specific node type.
     //  'node' => 'nodetype',
     // which group to display in ( null , experimental )
-    'group' => 'experimental',
+    'group' => 'optional',
   );
 
   $features['git_pull'] = array(
