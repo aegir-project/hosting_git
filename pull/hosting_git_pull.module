@@ -38,6 +38,7 @@ function hosting_git_pull_hosting_tasks() {
   $tasks['site']['git-pull'] = array(
     'title' => t('Git pull'),
     'description' => t('Runs a git pull on the current site.'),
+    'access callback' => 'hosting_git_pull_access_site_pull',
     'dialog' => TRUE,
   );
 
@@ -52,13 +53,27 @@ function hosting_git_pull_hosting_tasks() {
 }
 
 /**
+ * Access function for the pull task on sites.
+ */
+function hosting_git_pull_access_site_pull($node) {
+  if (user_access("create git-pull task")
+      && node_access('view', $node)
+      && isset($node->git['pull_method']) && $node->git['pull_method'] > 0) {
+
+    return TRUE;
+  }
+}
+
+/**
  * Access function for the pull task on platforms.
  */
 function hosting_git_pull_access_platform_pull($node) {
-  if (user_access('create platform git-pull task') && isset($node->git['git_allow_pull_task'])) {
-    return $node->git['git_allow_pull_task'];
+  if (user_access("create platform git-pull task")
+      && node_access('view', $node)
+      && isset($node->git['pull_method']) && $node->git['pull_method'] > 0) {
+
+    return TRUE;
   }
-  return TRUE;
 }
 
 /**
