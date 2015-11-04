@@ -26,7 +26,7 @@ function hosting_git_hosting_feature() {
     // associate with a specific node type.
     //  'node' => 'nodetype',
     // which group to display in ( null , experimental )
-    'group' => 'optional',
+    'group' => 'advanced',
   );
 
   $features['git_pull'] = array(
@@ -34,7 +34,7 @@ function hosting_git_hosting_feature() {
     'description' => t('Enables git pull tasks on sites and platforms.'),
     'status' => HOSTING_FEATURE_DISABLED,
     'module' => 'hosting_git_pull',
-    'group' => 'experimental',
+    'group' => 'advanced',
     'role_permissions' => array(
       'aegir platform manager' => array(
         'create platform git-pull task',
@@ -53,7 +53,7 @@ function hosting_git_hosting_feature() {
     'description' => t('Enables git checkout tasks on sites and platforms.'),
     'status' => HOSTING_FEATURE_DISABLED,
     'module' => 'hosting_git_checkout',
-    'group' => 'experimental',
+    'group' => 'advanced',
     'role_permissions' => array(
       'aegir platform manager' => array(
         'create platform git-checkout task',
