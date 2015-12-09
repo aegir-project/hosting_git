@@ -36,14 +36,22 @@ function hosting_git_pull_callback($name, $hash) {
   }
   // All checks pass! Server is allowed to trigger tasks!
   else {
-    $message = "Commit Received! Invoked by " . ip_address();
-    $status = HOSTING_GIT_WEBHOOK_STATUS_OK;
+    // Check JSON payload here... If we see a GitHub payload with branches,
+    $data = json_decode(file_get_contents('php://input'), true);
 
-    // @TODO: Check Payload Here... If we see a GitHub payload with branches,
-    // filter out the $environments_to_pull based on those branches.
+    if (is_array($data) && !empty($data['ref']) &&  $data['ref'] == 'refs/heads/' . $node->git['git_ref']) {
 
-    $args = array('reset_hard' => TRUE);
-    hosting_add_task($node->nid, 'git-pull', $args);
+      $message = "Commit Received! Invoked by " . ip_address();
+      $status = HOSTING_GIT_WEBHOOK_STATUS_OK;
+
+      $args = array('reset_hard' => TRUE);
+      hosting_add_task($node->nid, 'git-pull', $args);
+
+    }
+    else {
+      $message = "Commit for OTHER branch Received! Ignoring";
+      $status = HOSTING_GIT_WEBHOOK_STATUS_OTHER_REF;
+    }
   }
 
   // Log It, only if there is a status.

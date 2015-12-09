@@ -7,6 +7,7 @@
 define('HOSTING_GIT_WEBHOOK_STATUS_OK', 1);
 define('HOSTING_GIT_WEBHOOK_STATUS_ACCESS_DENIED', 2);
 define('HOSTING_GIT_WEBHOOK_STATUS_INVALID_CODE', 3);
+define('HOSTING_GIT_WEBHOOK_STATUS_OTHER_REF', 4);
 
 // These are github's Webhook callback IPs.
 // This list grows occaisonally, update it as needed.
