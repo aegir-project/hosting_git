@@ -64,6 +64,10 @@ function hosting_git_pull_callback($name, $hash) {
       ))
       ->condition('nid', $node->nid)
       ->execute();
+
+    if ($status != HOSTING_GIT_WEBHOOK_STATUS_OK && $status != HOSTING_GIT_WEBHOOK_STATUS_OTHER_REF) {
+      drupal_add_http_header('Status', '403 Forbidden');
+    }
   }
 
   // Output a message, no matter what.
