@@ -124,18 +124,7 @@ function hosting_git_node_form_validate($form, &$form_state) {
  * Implements hook_node_insert().
  */
 function hosting_git_node_insert($node) {
-  if ($node->type == 'platform' || $node->type == 'site') {
-    if (empty($node->git['repo_url']) || empty($node->git['git_ref'])) {
-      _hosting_git_node_load_defaults($node);
-    }
-    db_merge('hosting_git')
-      ->key(array('nid' => $node->nid))
-      ->fields(array(
-        'repo_url' => $node->git['repo_url'],
-        'git_ref' => $node->git['git_ref'],
-      ))
-      ->execute();
-  }
+  return hosting_git_node_update($node);
 }
 
 /**

@@ -162,6 +162,12 @@ function hosting_git_pull_form_alter(&$form, &$form_state, $form_id) {
         '#attributes' => array(
           'onclick' => 'this.select()',
         ),
+        '#states' => array(
+          'visible' => array(
+            ':input[name="pull_method"]' => array('value' => HOSTING_GIT_PULL_CALLBACK),
+          ),
+        ),
+
       );
     }
   }
