@@ -1,6 +1,6 @@
 name = Git pull tasks
 description = Allows access to the pull task
-package = Hosting
+package = Aegir Git
 dependencies[] = hosting_site
 dependencies[] = hosting_git
 core = 7.x
