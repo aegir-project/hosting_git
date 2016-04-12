@@ -49,6 +49,15 @@ function hosting_git_pull_callback($name, $hash) {
           $status = HOSTING_GIT_WEBHOOK_STATUS_OTHER_REF;
         }
       }
+
+      // BitBucket.
+      if (!empty($data['push']['changes'][0]['new']['name'])) {
+        if ($data['push']['changes'][0]['new']['name'] == $node->git['git_ref']) {
+          $status = HOSTING_GIT_WEBHOOK_STATUS_OK;
+        } else {
+          $status = HOSTING_GIT_WEBHOOK_STATUS_OTHER_REF;
+        }
+      }
     }
     else {
       // No payload ... no way to filter on branch.
