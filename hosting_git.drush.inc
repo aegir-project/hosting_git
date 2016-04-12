@@ -13,6 +13,20 @@
  */
 function drush_hosting_git_pre_hosting_task($task) {
   $task = &drush_get_context('HOSTING_TASK');
+  if ($task->task_type == 'git-clone') {
+    if (!empty($task->task_args['git_url'])) {
+      // Pass the argument provision_git expects.
+      $task->args[0] = $task->task_args['git_url'];
+    }
+    if (!empty($task->task_args['path'])) {
+      // Pass the argument provision_git expects.
+      $task->args[1] = $task->task_args['path'];
+    }
+    if (!empty($task->task_args['git_ref'])) {
+      // Pass the option provision_git expects.
+      $task->args[2] = $task->task_args['git_ref'];
+    }
+  }
 
   // Only work on selected task types.
   if (!in_array($task->task_type, array('git-pull', 'git-checkout'))) {
