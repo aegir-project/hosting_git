@@ -75,6 +75,7 @@ function provision_git_drush_command() {
     'arguments' => array(
       'git_url' => dt('The git repository to clone.'),
       'path' => dt('The location where the git repository will be cloned.'),
+      'git_ref' => dt('Parameter for the git checkout command'),
     ),
   );
   $items['provision-git-checkout'] = array(
