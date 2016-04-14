@@ -46,6 +46,11 @@ function hosting_git_pull_hosting_tasks() {
  * Access function for the pull task on sites.
  */
 function hosting_git_pull_access_site_pull($node) {
+  // Only consider doing this if we have a git repo.
+  if (empty($node->git['repo_url'])) {
+    return FALSE;
+  }
+
   if (user_access("create git-pull task")
       && node_access('view', $node)
       && isset($node->git['pull_method']) && $node->git['pull_method'] > 0) {
@@ -58,6 +63,11 @@ function hosting_git_pull_access_site_pull($node) {
  * Access function for the pull task on platforms.
  */
 function hosting_git_pull_access_platform_pull($node) {
+  // Only consider doing this if we have a git repo.
+  if (empty($node->git['repo_url'])) {
+    return FALSE;
+  }
+
   if (user_access("create platform git-pull task")
       && node_access('view', $node)
       && isset($node->git['pull_method']) && $node->git['pull_method'] > 0) {
