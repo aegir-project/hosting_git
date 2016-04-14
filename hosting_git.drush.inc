@@ -82,18 +82,6 @@ function hosting_git_drush_context_import($context, &$node) {
   }
 }
 
-
-/**
- * Implements hook_post_hosting_TASK_TYPE_task().
- */
-function hosting_git_post_hosting_git_checkout_task($task, $data) {
-  hosting_git_post_hosting_verify_task($task, $data);
-
-  // Save the node, hosting_site_post_hosting_verify_task does that
-  // for a verify task but not for checkout.
-  node_save($task->ref);
-}
-
 /**
  * Implements hook_post_hosting_TASK_TYPE_task().
  */

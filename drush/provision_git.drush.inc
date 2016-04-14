@@ -486,7 +486,6 @@ function drush_provision_git_post_provision_verify() {
   _provision_git_update_git_meta_data();
 }
 
-
 /**
  * Update the drush context with the git_url and current git_ref.
  */
