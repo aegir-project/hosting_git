@@ -46,7 +46,14 @@ function drush_provision_git_checkout($git_ref = '') {
     return drush_set_error('DRUSH_PROVISION_GIT_CHECKOUT_FAILED', dt("Git checkout failed: No git_ref specified."));
   }
 
-  provision_backend_invoke(d()->name, 'provision-git-fetch', array(), array('repo_path' => $path));
+  $target = d()->name;
+
+  // Only git reset --hard if option says so.
+  if (drush_get_option('reset') == TRUE) {
+    provision_backend_invoke($target, 'provision-git-reset');
+  }
+
+  provision_backend_invoke($target, 'provision-git-fetch', array(), array('repo_path' => $path));
 
   drush_log(dt('Checking out git reference !git_ref', array('!git_ref' => $git_ref), 'ok'));
 
