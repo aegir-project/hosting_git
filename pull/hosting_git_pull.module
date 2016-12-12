@@ -232,7 +232,7 @@ function hosting_git_pull_node_update($node) {
  */
 function hosting_git_pull_node_insert($node) {
   if ($node->type == 'platform' || $node->type == 'site') {
-    if (empty($node->git['repo_branch'])) {
+    if (!isset($node->git['pull_method'])) {
       _hosting_git_pull_node_load_defaults($node);
     }
     db_merge('hosting_git_pull')
