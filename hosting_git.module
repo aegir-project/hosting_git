@@ -78,6 +78,15 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
         '#description' => t('The full URL that you would pass to <em>git clone</em>. Example:  git@github.com:username/project.git or https://github.com/username/project.git. Note that this repository must be accessible by the Aegir user.'),
         '#default_value' => isset($node->git['repo_url']) ? $node->git['repo_url'] : '',
       );
+      $form['git']['repo_path'] = array(
+        '#type' => 'textfield',
+        '#title' => 'Repository path',
+        '#description' => t('Defaults to the Publish Path if left blank. If Drupal is not in the root of your repository, enter the absolute path to clone the repository to, and edit the Publish Path to point to the correct subfolder. For example, if your Drupal code is in <code>docroot</code>, set Repository path to <code>/var/aegir/platforms/NAME</code> and Publish path to <code>/var/aegir/platforms/NAME/docroot</code>'),
+        '#default_value' => isset($node->git['repo_path']) ? $node->git['repo_path'] : '',
+        '#element_validate' => array(
+          'hosting_git_repo_path_validate'
+        ),
+      );
 
       $form['git']['git_ref'] = array(
         '#type' => 'textfield',
@@ -93,6 +102,11 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
         '#title' => t('Repo URL'),
         '#markup' => $node->git['repo_url'],
       );
+      $form['git']['repo_path_display'] = array(
+        '#type' => 'item',
+        '#title' => t('Repo Path'),
+        '#markup' => $node->git['repo_path'],
+      );
       $form['git']['git_ref_display'] = array(
         '#type' => 'item',
         '#title' => 'Branch or tag name',
@@ -107,6 +121,36 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
     }
     elseif (empty($node->git['repo_url'])) {
       $form['git']['#collapsed'] = TRUE;
+    }
+  }
+}
+
+/**
+ * Form element validator for the Repo Path. Checks that the repo path contains the platform path.
+ *
+ * @param $element
+ * @param $form_state
+ * @param $form
+ */
+function hosting_git_repo_path_validate($element, &$form_state, $form) {
+  
+  // Don't do anything unless we have a repo URL.
+  if (empty($form_state['values']['git']['repo_url'])) {
+    return;
+  }
+  
+  // If repo path is empty, set value to publish path.
+  if (empty($element['#value'])) {
+    form_set_value($element, $form_state['values']['publish_path'], $form_state);
+  }
+  else {
+    // Get the full publish path. This is how hosting_platform_form_validate() does it.
+    $publish_path = variable_get('hosting_platform_base_path', '/var/aegir/platforms/') . $form_state['values']['publish_path'];
+    $repo_path = $form_state['values']['git']['repo_path'];
+    
+    // Check that the repo_path contains the publish path.
+    if (strpos($publish_path, $repo_path) !== 0) {
+      form_error($element, t('The Repository Path must contain the Publish Path. Edit the Publish Path or Repository Path and try again.'));
     }
   }
 }
@@ -140,6 +184,7 @@ function hosting_git_node_update($node) {
       ->key(array('nid' => $node->nid))
       ->fields(array(
         'repo_url' => $node->git['repo_url'],
+        'repo_path' => $node->git['repo_path'],
         'git_ref' => $node->git['git_ref'],
       ))
       ->execute();
@@ -160,6 +205,7 @@ function hosting_git_node_load($nodes, $types) {
         }
 
         $node->git['repo_url'] = $result->repo_url;
+        $node->git['repo_path'] = $result->repo_path;
         $node->git['git_ref'] = $result->git_ref;
       }
       else {
@@ -179,6 +225,10 @@ function _hosting_git_node_load_defaults(&$node) {
 
   if (!isset($node->git['repo_url'])) {
     $node->git['repo_url'] = '';
+  }
+
+  if (!isset($node->git['repo_path'])) {
+    $node->git['repo_path'] = '';
   }
 
   if (!isset($node->git['git_ref'])) {
@@ -209,6 +259,16 @@ function hosting_git_node_view($node) {
       '#weight' => 100,
       '#markup' => check_plain($node->git['repo_url']),
     );
+    
+    // If repo path is different than publish path, show it.
+    if ($node->git['repo_path'] != $node->publish_path) {
+      $node->content['info']['repo_path'] = array(
+        '#type' => 'item',
+        '#title' => t('Git Repository Path'),
+        '#weight' => 100,
+        '#markup' => check_plain($node->git['repo_path']),
+      );
+    }
     $ref = $node->git['git_ref'] ? $node->git['git_ref'] : t('Pending Verification');
     $node->content['info']['git_ref'] = array(
       '#type' => 'item',
