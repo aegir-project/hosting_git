@@ -150,7 +150,7 @@ function hosting_git_repo_path_validate($element, &$form_state, $form) {
     $repo_path = $form_state['values']['git']['repo_path'];
 
     // Check that the repo_path contains the publish path.
-    if (strpos($publish_path, $repo_path) !== 0) {
+    if (strpos($repo_path, $publish_path) !== 0) {
       form_error($element, t('The Repository Path must contain the Publish Path. Edit the Publish Path or Repository Path and try again.'));
     }
   }
