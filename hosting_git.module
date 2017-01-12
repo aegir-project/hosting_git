@@ -86,6 +86,7 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
         '#element_validate' => array(
           'hosting_git_repo_path_validate'
         ),
+        '#access' => $node_type == 'platform',
       );
 
       $form['git']['git_ref'] = array(
