@@ -52,10 +52,10 @@ function hosting_git_schema() {
  */
 function hosting_git_update_7001 () {
   db_add_field('hosting_git', 'repo_path', array(
-    'description' => 'The relative path within the repository to the Drupal platform.',
+    'description' => 'The absolute path to clone the repository to.',
     'type' => 'varchar',
     'length' => 255,
-    'not null' => TRUE,
+    'not null' => FALSE,
     'default' => '',
   ));
 }
