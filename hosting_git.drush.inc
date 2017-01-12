@@ -60,6 +60,7 @@ function hosting_git_hosting_platform_context_options(&$task) {
   // If we're actually provisioning from Git, populate real data.
   if (!empty($task->ref->git['repo_url'])) {
     $task->context_options['repo_url'] = $task->ref->git['repo_url'];
+    $task->context_options['repo_path'] = $task->ref->git['repo_path'];
     $task->context_options['deploy_from_git'] = TRUE;
     $task->context_options['git_ref'] = $task->ref->git['git_ref'];
   }

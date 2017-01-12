@@ -273,7 +273,7 @@ function drush_provision_git_clone($git_url = '', $path = '', $git_ref = '') {
         break;
       case 'platform':
       default:
-        $path = d()->root;
+        $path = d()->repo_path;
         break;
     }
   }

@@ -10,6 +10,7 @@ class Provision_Service_git extends Provision_Service {
 
   static function subscribe_platform($context) {
     $context->setProperty('repo_url');
+    $context->setProperty('repo_path');
     $context->setProperty('deploy_from_git');
     $context->setProperty('git_ref');
   }
