@@ -30,7 +30,7 @@ function hosting_git_schema() {
         'description' => 'The absolute path to clone the repository to.',
         'type' => 'varchar',
         'length' => 255,
-        'not null' => TRUE,
+        'not null' => FALSE,
         'default' => '',
       ),
       'git_ref' => array(
