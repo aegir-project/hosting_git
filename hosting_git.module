@@ -134,12 +134,12 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
  * @param $form
  */
 function hosting_git_repo_path_validate($element, &$form_state, $form) {
-  
+
   // Don't do anything unless we have a repo URL.
   if (empty($form_state['values']['git']['repo_url'])) {
     return;
   }
-  
+
   // If repo path is empty, set value to publish path.
   if (empty($element['#value'])) {
     form_set_value($element, $form_state['values']['publish_path'], $form_state);
@@ -148,9 +148,9 @@ function hosting_git_repo_path_validate($element, &$form_state, $form) {
     // Get the full publish path. This is how hosting_platform_form_validate() does it.
     $publish_path = variable_get('hosting_platform_base_path', '/var/aegir/platforms/') . $form_state['values']['publish_path'];
     $repo_path = $form_state['values']['git']['repo_path'];
-    
+
     // Check that the repo_path contains the publish path.
-    if (strpos($publish_path, $repo_path) !== 0) {
+    if (strpos($repo_path, $publish_path) !== 0) {
       form_error($element, t('The Repository Path must contain the Publish Path. Edit the Publish Path or Repository Path and try again.'));
     }
   }
@@ -251,7 +251,7 @@ function hosting_git_node_view($node) {
       '#weight' => 100,
       '#markup' => check_plain($node->git['repo_url']),
     );
-    
+
     // If repo path is different than publish path, show it.
     if ($node->git['repo_path'] != $node->publish_path) {
       $node->content['info']['repo_path'] = array(
