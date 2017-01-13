@@ -51,7 +51,7 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
 
     if ($form_id == 'platform_node_form') {
       $node_type = 'platform';
-      $deploy_description = t('You may deploy this platform from a Git repository. This functionality cannot be combined with a Makefile.');
+      $deploy_description = t('You may deploy this platform from a Git repository. The repository must contain a full Drupal codebase or a makefile. If you wish to use a makefile that is contained inside your repository, you must specify the full path to the Makefile below. Make sure to specify the location where it will be located after the git clone based on the Repository Path. ');
       // Default collapse 'from makefile' fieldset.
       $form['frommakefile']['#collapsed'] = TRUE;
     }
@@ -153,15 +153,6 @@ function hosting_git_repo_path_validate($element, &$form_state, $form) {
     if (strpos($publish_path, $repo_path) !== 0) {
       form_error($element, t('The Repository Path must contain the Publish Path. Edit the Publish Path or Repository Path and try again.'));
     }
-  }
-}
-
-/**
- * Validation callback for platform node form.
- */
-function hosting_git_node_form_validate($form, &$form_state) {
-  if (!empty($form_state['values']['git']['repo_url']) && !empty($form_state['values']['frommakefile']['makefile'])) {
-    form_set_error('makefile', t('Git deployment and Makefile deployment cannot be combined'));
   }
 }
 
