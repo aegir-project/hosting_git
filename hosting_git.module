@@ -61,7 +61,6 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
       $deploy_description = t('You may deploy this site from a Git repository.');
     }
 
-    $form['#validate'][] = 'hosting_git_node_form_validate';
     $form['git'] = array(
       '#type' => 'fieldset',
       '#tree' => TRUE,
