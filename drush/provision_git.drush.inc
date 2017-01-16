@@ -383,6 +383,19 @@ function drush_provision_git_post_provision_verify() {
 }
 
 /**
+ * Implements drush_hook_post_COMMAND() for provision-delete command.
+ *
+ * If repo path is different from root, delete it.
+ */
+function drush_provision_git_post_provision_delete() {
+  // If platform has a repo path that is not the root, it must be deleted as well.
+  if (d()->type =='platform' && d()->repo_path != d()->root) {
+    drush_log('Deleting repo path at ' . d()->repo_path, 'ok');
+    _provision_recursive_delete(d()->repo_path);
+  }
+}
+
+/**
  * Update the drush context with the git_url and current git_ref.
  */
 function _provision_git_update_git_meta_data() {
