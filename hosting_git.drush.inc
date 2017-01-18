@@ -80,6 +80,7 @@ function hosting_git_drush_context_import($context, &$node) {
   if (in_array($context->type, array('site', 'platform')) && $context->deploy_from_git) {
     $node->git['repo_url'] = $context->repo_url;
     $node->git['git_ref'] = $context->git_ref;
+    $node->git['repo_path'] = $context->repo_path;
   }
 }
 
