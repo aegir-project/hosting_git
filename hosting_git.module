@@ -197,8 +197,16 @@ function hosting_git_node_load($nodes, $types) {
         }
 
         $node->git['repo_url'] = $result->repo_url;
-        $node->git['repo_path'] = $result->repo_path;
         $node->git['git_ref'] = $result->git_ref;
+        
+        // If platform repo path is empty, then load the publish_path in it's place.
+        if ( $node->type == 'platform' && empty($node->git['repo_path'])) {
+          $node->git['repo_path'] = $node->publish_path;
+        }
+        else {
+          $node->git['repo_path'] = $result->repo_path;
+        }
+        
       }
       else {
         _hosting_git_node_load_defaults($node);
