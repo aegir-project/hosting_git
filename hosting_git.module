@@ -113,6 +113,17 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
         '#markup' => isset($node->git['git_ref']) ? $node->git['git_ref'] : 'master',
         '#description' => 'Use a checkout task to change this value.',
       );
+      
+      // Don't lose values
+      $form['git']['repo_url'] = array(
+        '#type' => 'value',
+        '#default_value' => isset($node->git['repo_url']) ? $node->git['repo_url'] : '',
+      );
+      // Don't lose values
+      $form['git']['repo_path'] = array(
+        '#type' => 'value',
+        '#default_value' => isset($node->git['repo_path']) ? $node->git['repo_path'] : '',
+      );
     }
 
     // Default collapse one fieldset based on the current node.
