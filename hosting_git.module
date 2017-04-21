@@ -260,12 +260,14 @@ function hosting_git_node_view($node) {
       '#weight' => 100,
       '#markup' => check_plain($node->git['repo_url']),
     );
-    $node->content['info']['repo_path'] = array(
-      '#type' => 'item',
-      '#title' => t('Git repository path'),
-      '#weight' => 100,
-      '#markup' => check_plain($node->git['repo_path']),
-    );
+    if (!empty($node->git['repo_path'])) {
+      $node->content['info']['repo_path'] = array(
+        '#type' => 'item',
+        '#title' => t('Git repository path'),
+        '#weight' => 100,
+        '#markup' => check_plain($node->git['repo_path']),
+      );
+    }
     if (!empty($node->git['repo_docroot'])) {
       $node->content['info']['repo_docroot'] = array(
         '#type' => 'item',
