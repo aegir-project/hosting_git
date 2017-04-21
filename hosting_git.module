@@ -51,7 +51,7 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
 
     if ($form_id == 'platform_node_form') {
       $node_type = 'platform';
-      $deploy_description = t('You may deploy this platform from a Git repository. The repository must contain a full Drupal codebase or a makefile. If you wish to use a makefile that is contained inside your repository, you must specify the full path to the Makefile below. Make sure to specify the location where it will be located after the git clone based on the Repository Path. ');
+      $deploy_description = t('You may deploy this platform from a Git repository. This functionality cannot be combined with a Makefile.');
       // Default collapse 'from makefile' fieldset.
       $form['frommakefile']['#collapsed'] = TRUE;
     }
@@ -61,6 +61,7 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
       $deploy_description = t('You may deploy this site from a Git repository.');
     }
 
+    $form['#validate'][] = 'hosting_git_node_form_validate';
     $form['git'] = array(
       '#type' => 'fieldset',
       '#tree' => TRUE,
@@ -77,11 +78,12 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
         '#description' => t('The full URL that you would pass to <em>git clone</em>. Example:  git@github.com:username/project.git or https://github.com/username/project.git. Note that this repository must be accessible by the Aegir user.'),
         '#default_value' => isset($node->git['repo_url']) ? $node->git['repo_url'] : '',
       );
-      $form['git']['repo_path'] = array(
+
+      $form['git']['repo_docroot'] = array(
         '#type' => 'textfield',
-        '#title' => 'Repository path',
-        '#description' => t('Defaults to the Publish Path if left blank. If Drupal is not in the root of your repository, enter the absolute path to clone the repository to, and edit the Publish Path to point to the correct subfolder. For example, if your Drupal code is in <code>docroot</code>, set Repository path to <code>/var/aegir/platforms/NAME</code> and Publish path to <code>/var/aegir/platforms/NAME/docroot</code>'),
-        '#default_value' => isset($node->git['repo_path']) ? $node->git['repo_path'] : '',
+        '#title' => 'Repository docroot',
+        '#description' => t('If Drupal is not in the root of your repository, enter the relative path within the repository that points to the correct subfolder.'),
+        '#default_value' => isset($node->git['repo_docroot']) ? $node->git['repo_docroot'] : '',
         '#access' => $node_type == 'platform',
       );
 
@@ -110,7 +112,7 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
         '#markup' => isset($node->git['git_ref']) ? $node->git['git_ref'] : 'master',
         '#description' => 'Use a checkout task to change this value.',
       );
-      
+
       // Don't lose values
       $form['git']['repo_url'] = array(
         '#type' => 'value',
@@ -134,6 +136,25 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
 }
 
 /**
+ * Validation callback for platform node form.
+ */
+function hosting_git_node_form_validate($form, &$form_state) {
+  if (!empty($form_state['values']['git']['repo_url']) && !empty($form_state['values']['frommakefile']['makefile'])) {
+    form_set_error('makefile', t('Git deployment and Makefile deployment cannot be combined'));
+  }
+}
+
+/**
+ * Implements hook_node_submit().
+ */
+function hosting_git_node_submit($node, $form, &$form_state) {
+  if (!empty($form_state['values']['git']['repo_docroot'])) {
+    $form_state['values']['git']['repo_path'] = $node->git['repo_path'] = $node->publish_path;
+    $form_state['values']['publish_path'] = $node->publish_path = $node->git['repo_path'] . '/' . $node->git['repo_docroot'];
+  }
+}
+
+/**
  * Implements hook_node_insert().
  */
 function hosting_git_node_insert($node) {
@@ -145,7 +166,7 @@ function hosting_git_node_insert($node) {
  */
 function hosting_git_node_update($node) {
   if ($node->type == 'platform' || $node->type == 'site') {
-    if (empty($node->git['repo_url']) || empty($node->git['git_ref'])) {
+    if (empty($node->git['repo_url']) || empty($node->git['git_ref'] || empty($node->git['git_docroot']))) {
       _hosting_git_node_load_defaults($node);
     }
 
@@ -154,6 +175,7 @@ function hosting_git_node_update($node) {
       ->fields(array(
         'repo_url' => $node->git['repo_url'],
         'repo_path' => $node->git['repo_path'],
+        'repo_docroot' => $node->git['repo_docroot'],
         'git_ref' => $node->git['git_ref'],
       ))
       ->execute();
@@ -176,6 +198,7 @@ function hosting_git_node_load($nodes, $types) {
         $node->git['repo_url'] = $result->repo_url;
         $node->git['git_ref'] = $result->git_ref;
         $node->git['repo_path'] = $result->repo_path;
+        $node->git['repo_docroot'] = $result->repo_docroot;
 
         // If platform repo path is empty, then load the publish_path in it's place.
         if ( $node->type == 'platform' && empty($node->git['repo_path'])) {
@@ -203,6 +226,10 @@ function _hosting_git_node_load_defaults(&$node) {
 
   if (!isset($node->git['repo_path'])) {
     $node->git['repo_path'] = '';
+  }
+
+  if (!isset($node->git['repo_docroot'])) {
+    $node->git['repo_docroot'] = '';
   }
 
   if (!isset($node->git['git_ref'])) {
@@ -235,10 +262,17 @@ function hosting_git_node_view($node) {
     );
     $node->content['info']['repo_path'] = array(
       '#type' => 'item',
-      '#title' => t('Git Repository Path'),
+      '#title' => t('Git repository path'),
       '#weight' => 100,
       '#markup' => check_plain($node->git['repo_path']),
     );
+    $node->content['info']['repo_docroot'] = array(
+      '#type' => 'item',
+      '#title' => t('Repository docroot'),
+      '#weight' => 100,
+      '#markup' => check_plain($node->git['repo_docroot']),
+    );
+
     $ref = $node->git['git_ref'] ? $node->git['git_ref'] : t('Pending Verification');
     $node->content['info']['git_ref'] = array(
       '#type' => 'item',
