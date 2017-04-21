@@ -166,7 +166,7 @@ function hosting_git_node_insert($node) {
  */
 function hosting_git_node_update($node) {
   if ($node->type == 'platform' || $node->type == 'site') {
-    if (empty($node->git['repo_url']) || empty($node->git['git_ref'] || empty($node->git['git_docroot']))) {
+    if (empty($node->git['repo_url']) || empty($node->git['git_ref']) || empty($node->git['git_docroot'])) {
       _hosting_git_node_load_defaults($node);
     }
 
