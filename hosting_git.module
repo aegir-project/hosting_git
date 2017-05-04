@@ -271,7 +271,7 @@ function hosting_git_node_view($node) {
     if (!empty($node->git['repo_docroot'])) {
       $node->content['info']['repo_docroot'] = array(
         '#type' => 'item',
-        '#title' => t('Repository docroot'),
+        '#title' => t('Git repository docroot'),
         '#weight' => 100,
         '#markup' => check_plain($node->git['repo_docroot']),
       );
