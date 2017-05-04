@@ -34,7 +34,7 @@ function hosting_git_schema() {
         'default' => '',
       ),
       'repo_docroot' => array(
-        'description' => 'The (relative) path within a git repository where sites will be hosted.',
+        'description' => 'The relative path within the git repository where sites will be hosted.',
         'type' => 'varchar',
         'length' => 255,
         'not null' => FALSE,
