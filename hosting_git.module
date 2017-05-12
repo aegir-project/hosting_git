@@ -61,7 +61,6 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
       $deploy_description = t('You may deploy this site from a Git repository.');
     }
 
-    $form['#validate'][] = 'hosting_git_node_form_validate';
     $form['git'] = array(
       '#type' => 'fieldset',
       '#tree' => TRUE,
@@ -135,14 +134,6 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
   }
 }
 
-/**
- * Validation callback for platform node form.
- */
-function hosting_git_node_form_validate($form, &$form_state) {
-  if (!empty($form_state['values']['git']['repo_url']) && !empty($form_state['values']['frommakefile']['makefile'])) {
-    form_set_error('makefile', t('Git deployment and Makefile deployment cannot be combined'));
-  }
-}
 
 /**
  * Implements hook_node_submit().
