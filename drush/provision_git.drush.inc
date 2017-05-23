@@ -96,8 +96,8 @@ function provision_git_is_repo($repo_path = NULL, $set_error = TRUE) {
       $repo_path = d()->platform->root ? d()->platform->root : d()->root;
     }
   }
-  // If shell returns False, this is not a git repo
-  if (!drush_shell_cd_and_exec($repo_path, 'git status')) {
+  // If repo_path does not exist, or git status returns False, this is not a git repo
+  if (!file_exists($repo_path) || !drush_shell_cd_and_exec($repo_path, 'git status')) {
     if ($set_error) {
       drush_set_error('DRUSH_PROVISION_GIT_PULL_FAILED', dt("Git repository not found in: !path", array('!path' => $repo_path)));
     }
