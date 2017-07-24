@@ -140,6 +140,11 @@ function hosting_git_pull_form_alter(&$form, &$form_state, $form_id) {
   if ($form_id == 'platform_node_form' || $form_id == 'site_node_form') {
     // Get node object.
     $node = $form['#node'];
+    
+    // Only add git info if allowed by settings.
+    if (!variable_get("hosting_git_allow_deploy_" . $node->type, TRUE)) {
+      return;
+    }
 
     // Bail out early of the hosting_git module has not already added it's fieldset.
     if (!isset($form['git'])) {
