@@ -66,12 +66,12 @@ function hosting_git_pull_callback($name, $hash) {
 
 
     if ($status == HOSTING_GIT_WEBHOOK_STATUS_OK) {
-      $message = "Commit Received! Invoked by " . ip_address();
+      $message = "Webhook Received! Invoked by " . ip_address();
       $args = array('reset_hard' => TRUE);
       hosting_add_task($node->nid, 'git-pull', $args);
     }
     elseif ($status == HOSTING_GIT_WEBHOOK_STATUS_OTHER_REF) {
-      $message = "Commit for OTHER branch Received! Ignoring";
+      $message = "Webhook for OTHER branch Received! Ignoring";
     }
   }
 
