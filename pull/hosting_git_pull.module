@@ -145,21 +145,40 @@ function hosting_git_pull_form_alter(&$form, &$form_state, $form_id) {
     if (!isset($form['git'])) {
       return;
     }
-
+  
+    $queues = hosting_get_queues();
+  
+    // DISABLED
+    $options[HOSTING_GIT_PULL_DISABLED] = t('Disabled') . '<div class="help-block">' . t('Running Git Pull is not allowed at all.') . '</div>';
+  
+    // MANUAL
+    $options[HOSTING_GIT_PULL_MANUAL] = t('Manual Git Pull') . '<div class="help-block">' . t('Git Pull must be triggered manually.') . '</div>';
+  
+    // QUEUED
+    $options[HOSTING_GIT_PULL_QUEUE] = t('Queued Git Pull');
+    $queued_help = t('Git pull code every @freq. Use only if repository webhooks are not available.', array(
+      '@freq' => format_interval($queues['pull']['frequency'], 1)
+    ));
+    if (user_access('administer hosting queues')) {
+      $queued_help .= ' ' . l(t("Configure Queues"), 'admin/hosting/queues', array('attributes' => array('target' => '_blank')));
+    }
+    $options[HOSTING_GIT_PULL_QUEUE] .= '<div class="help-block">' . $queued_help . '</div>';
+    
+    // WEBHOOK
+    $options[HOSTING_GIT_PULL_CALLBACK] = t('Git Pull on Webhook Request');
+  
+    $webhook_help = t('Recommended. Pull code as soon as it is delivered to your repository by setting up a webhook with your git repository host.');
+    if (user_access('administer hosting queues')) {
+      $webhook_help .= ' ' . l(t("Configure Webhooks"), 'admin/hosting/git', array('attributes' => array('target' => '_blank')));
+    }
+    $options[HOSTING_GIT_PULL_CALLBACK] .= '<div class="help-block">' . $webhook_help . '</div>';
+  
+  
     $form['git']['pull_method'] = array(
-      '#title' => t('Git pull method'),
+      '#title' => t('Git Pull Method'),
       '#type' => 'radios',
-      '#description' => t('Choose the method by which "Git Pull" can be run. See !link to configure the queue. See !link2 to configure URL Callback.', array(
-        '!link' => l(t('Hosting > Queues'), 'admin/hosting/queues'),
-        '!link2' => l(t('Hosting > Git'), 'admin/hosting/git'),
-      )),
       '#default_value' => isset($node->git['pull_method']) ? $node->git['pull_method'] : HOSTING_GIT_PULL_DISABLED,
-      '#options' => array(
-        HOSTING_GIT_PULL_DISABLED => t('Pull disabled.'),
-        HOSTING_GIT_PULL_MANUAL => t('Pull on "Git Pull" task.'),
-        HOSTING_GIT_PULL_QUEUE => t('Pull on queue (i.e. every minute).'),
-        HOSTING_GIT_PULL_CALLBACK => t('Pull on URL Callback (i.e. GitHub Webhook)'),
-      ),
+      '#options' => $options,
     );
     $form['git']['pull_url'] = array(
       '#type' => 'textfield',
