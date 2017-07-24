@@ -73,6 +73,9 @@ function hosting_git_pull_callback($name, $hash) {
       if ($task->nid) {
         $message .= " Task started: " . url("node/{$task->nid}", array('absolute' => TRUE));
       }
+      else {
+        $message .= " ERROR! Unable to save task!";
+      }
     }
     elseif ($status == HOSTING_GIT_WEBHOOK_STATUS_OTHER_REF) {
       $message = "Webhook for OTHER branch Received! Ignoring";
@@ -98,6 +101,7 @@ function hosting_git_pull_callback($name, $hash) {
   // Output a message, no matter what.
   watchdog('hosting_git_pull', $message, array(), WATCHDOG_INFO);
   print $message;
+  print "\n\n";
 
   // Save a variable to help when using the settings page.
   variable_set('hosting_git_pull_webhook_last_ip', ip_address());
