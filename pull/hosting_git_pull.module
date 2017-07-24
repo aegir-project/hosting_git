@@ -234,9 +234,9 @@ function hosting_git_pull_method_options() {
   $options[HOSTING_GIT_PULL_QUEUE] .= '<div class="help-block">' . $queued_help . '</div>';
   
   // WEBHOOK
-  $options[HOSTING_GIT_PULL_CALLBACK] = t('Git Pull on Webhook Request');
+  $options[HOSTING_GIT_PULL_CALLBACK] = t('Automatic Git Pull');
   
-  $webhook_help = t('Recommended. Pull code as soon as it is delivered to your repository by setting up a webhook with your git repository host.');
+  $webhook_help = t('Recommended. Pull code to the server as soon as it is pushed to your repository by setting up a webhook with your git repository host.');
   if (user_access('administer hosting queues')) {
     $webhook_help .= ' ' . l(t("Configure Webhooks"), 'admin/hosting/git', array('attributes' => array('target' => '_blank')));
   }
