@@ -141,10 +141,3 @@ function _hosting_git_pull_callback_url($node) {
     . '/' . _hosting_git_pull_webhook_hash_create($node),
     array('absolute' => TRUE));
 }
-
-/**
- * Create a security hash code based on the node.
- */
-function _hosting_git_pull_webhook_hash_create($node) {
-  return md5($node->hosting_name . $node->nid);
-}
