@@ -128,16 +128,3 @@ function hosting_git_pull_ip_match($ip, $list) {
   }
   return FALSE;
 }
-
-/**
- * Create the full URL that is displayed in the node view.
- *
- * This URL can be given to the GitHub WebHook to invoke a pull after a commit.
- */
-function _hosting_git_pull_callback_url($node) {
-  // TODO The second parameter to this function call should be an array.
-  return url(HOSTING_GIT_WEBHOOK_CALLBACK_URL
-    . '/' . $node->hosting_name
-    . '/' . _hosting_git_pull_webhook_hash_create($node),
-    array('absolute' => TRUE));
-}
