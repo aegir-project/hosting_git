@@ -163,9 +163,11 @@ function hosting_git_pull_form_alter(&$form, &$form_state, $form_id) {
     );
     $form['git']['pull_url'] = array(
       '#type' => 'textfield',
-      '#title' => t('Pull Trigger URL'),
+      '#title' => t('Webhook URL'),
       '#value' => _hosting_git_pull_callback_url($node),
-      '#description' => t('Configure your repo to hit this URL when it receives a commit.'),
+      '#description' => t('Requests to this URL will trigger a "Git Pull" task for !link. Configure your repo to hit this URL when it receives a commit.', array(
+        '!link' => l(t('this platform'), "node/{$node->nid}"),
+      )),
       '#attributes' => array(
         'onclick' => 'this.select()',
       ),
