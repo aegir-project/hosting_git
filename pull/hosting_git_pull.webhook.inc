@@ -18,16 +18,16 @@ function hosting_git_pull_callback($name, $hash) {
 
   // Make sure we got the node.
   if (!$node) {
-    $message = "No context found with the name '$name_clean'.";
+    $message = "No node found with the name '$name_clean'.";
   }
   // Make sure the security code is valid.
   elseif (_hosting_git_pull_webhook_hash_create($node) != $hash) {
     $message = "Security code $hash is not valid!";
     $status = HOSTING_GIT_WEBHOOK_STATUS_INVALID_CODE;
   }
-  // Make sure the project has pull callback enabled.
+  // Make sure the node has pull callback enabled.
   elseif ($node->git['pull_method'] != HOSTING_GIT_PULL_CALLBACK) {
-    $message = "Project $name_clean is NOT configured to use Pull Code URL callback!";
+    $message = "Node $name_clean is NOT configured to use Pull Code URL callback!";
   }
   // Make sure the client's IP address is on the list.
   elseif (!hosting_git_pull_ip_match(ip_address(), $allowed_ips)) {
