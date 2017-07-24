@@ -161,24 +161,20 @@ function hosting_git_pull_form_alter(&$form, &$form_state, $form_id) {
         HOSTING_GIT_PULL_CALLBACK => t('Pull on URL Callback (i.e. GitHub Webhook)'),
       ),
     );
-    if (_hosting_git_site_or_platform_enabled($node)) {
-      module_load_include('inc', 'hosting_git_pull', 'hosting_git_pull.webhook');
-      $form['git']['pull_url'] = array(
-        '#type' => 'textfield',
-        '#title' => t('Pull Trigger URL'),
-        '#value' => _hosting_git_pull_callback_url($node),
-        '#description' => t('Configure your repo to hit this URL when it receives a commit.'),
-        '#attributes' => array(
-          'onclick' => 'this.select()',
+    $form['git']['pull_url'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Pull Trigger URL'),
+      '#value' => _hosting_git_pull_callback_url($node),
+      '#description' => t('Configure your repo to hit this URL when it receives a commit.'),
+      '#attributes' => array(
+        'onclick' => 'this.select()',
+      ),
+      '#states' => array(
+        'visible' => array(
+          ':input[name="git[pull_method]"]' => array('value' => HOSTING_GIT_PULL_CALLBACK),
         ),
-        '#states' => array(
-          'visible' => array(
-            ':input[name="pull_method"]' => array('value' => HOSTING_GIT_PULL_CALLBACK),
-          ),
-        ),
-
-      );
-    }
+      ),
+    );
   }
 
   if ($form_id == 'hosting_git_settings_form') {
