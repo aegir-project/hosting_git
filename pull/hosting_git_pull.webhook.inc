@@ -18,7 +18,7 @@ function hosting_git_pull_callback($name, $hash) {
 
   // Make sure we got the node.
   if (!$node) {
-    $message = "Project $name_clean not found.";
+    $message = "No context found with the name '$name_clean'.";
   }
   // Make sure the security code is valid.
   elseif (_hosting_git_pull_webhook_hash_create($node) != $hash) {
