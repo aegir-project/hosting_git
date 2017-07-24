@@ -217,15 +217,15 @@ function hosting_git_pull_settings_form_submit(&$form, &$form_state) {
 function hosting_git_pull_method_options() {
   
   // DISABLED
-  $options[HOSTING_GIT_PULL_DISABLED] = t('Disabled') . '<div class="help-block">' . t('Running Git Pull is not allowed at all.') . '</div>';
+  $options[HOSTING_GIT_PULL_DISABLED] = t('Disabled') . '<div class="help-block">' . t('Running Git Pull is not allowed using the dashboard.') . '</div>';
   
   // MANUAL
-  $options[HOSTING_GIT_PULL_MANUAL] = t('Manual Git Pull') . '<div class="help-block">' . t('Git Pull must be triggered manually.') . '</div>';
+  $options[HOSTING_GIT_PULL_MANUAL] = t('Manual Git Pull') . '<div class="help-block">' . t('Use the dashboard to run a "Git Pull" task.') . '</div>';
   
   // QUEUED
   $queues = hosting_get_queues();
   $options[HOSTING_GIT_PULL_QUEUE] = t('Queued Git Pull');
-  $queued_help = t('Git pull code every @freq. Use only if repository webhooks are not available.', array(
+  $queued_help = t('Pull code to the server every @freq. Use only if repository webhooks are not available.', array(
     '@freq' => format_interval($queues['pull']['frequency'], 1)
   ));
   if (user_access('administer hosting queues')) {
