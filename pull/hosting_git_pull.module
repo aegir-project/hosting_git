@@ -1,4 +1,13 @@
 <?php
+/**
+ * @file hosting_git_pull.module
+ *
+ * Provides a Hosting Queue and a URL callback for remote services to ping, in
+ * order to trigger a Pull Code task.
+ *
+ * Used to keep a dev server up to date with the commits of projects.
+ *
+ */
 
 define('HOSTING_GIT_PULL_DISABLED', 0);
 define('HOSTING_GIT_PULL_QUEUE', 1);
