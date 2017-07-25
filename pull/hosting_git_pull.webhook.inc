@@ -110,7 +110,7 @@ function hosting_git_pull_callback($name, $hash) {
 /**
  * Check whether a given ip address matches a list of allowed ip addresses.
  *
- * A CIDR is allowed.
+ * A CIDR is allowed. Returns TRUE if $list is empty.
  *
  * @param string $ip
  *   The ip addy to test.
@@ -118,6 +118,9 @@ function hosting_git_pull_callback($name, $hash) {
  *   The list to test against.
  */
 function hosting_git_pull_ip_match($ip, $list) {
+  if (empty($list)) {
+    return TRUE;
+  }
   foreach ($list as $cidr) {
     if (trim($ip) === trim($cidr)) {
       return TRUE;

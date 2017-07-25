@@ -207,6 +207,8 @@ function hosting_git_pull_form_alter(&$form, &$form_state, $form_id) {
     else {
       $items[] = t('No requests ever detected.  If you add the trigger URL for a project to your git repo host, the IP will be logged and displayed here.');
     }
+  
+    $items[] = t('Leave empty to allow access from any IP address.');
     $form['pullhook']['hosting_git_pull_webhook_ip_acl']['#description'] = theme('item_list', array('items' => $items));
 
     $form['#submit'][] = 'hosting_git_pull_settings_form_submit';
