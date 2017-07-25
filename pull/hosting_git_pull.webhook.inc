@@ -118,7 +118,7 @@ function hosting_git_pull_callback($name, $hash) {
  *   The list to test against.
  */
 function hosting_git_pull_ip_match($ip, $list) {
-  if (empty($list)) {
+  if (empty(array_filter($list))) {
     return TRUE;
   }
   foreach ($list as $cidr) {
