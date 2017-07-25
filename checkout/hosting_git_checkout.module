@@ -60,11 +60,11 @@ function hosting_git_checkout_permission() {
 function hosting_task_git_checkout_form($node) {
 
   $form['checkout_git_ref'] = array(
-    '#title' => t('What branch or hash to checkout.'),
-    '#description' => t("Give the branch for this checkout."),
+    '#title' => t('What branch, tag, or hash would you like to checkout?'),
+    '#description' => t("The command 'git checkout' will be run using this value. If a branch does not exist in the remote repository, it will be created as a new branch locally."),
     '#type' => 'textfield',
     '#weight' => '-2',
-    '#default_value' => '',
+    '#default_value' => isset($_GET['checkout_git_ref'])? $_GET['checkout_git_ref']: '',
   );
 
   $form['reset_hard'] = array(
