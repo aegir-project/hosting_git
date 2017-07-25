@@ -159,23 +159,24 @@ function hosting_git_pull_form_alter(&$form, &$form_state, $form_id) {
       '#default_value' => isset($node->git['pull_method']) ? $node->git['pull_method'] : HOSTING_GIT_PULL_DISABLED,
       '#options' => $options,
     );
-    $form['git']['pull_url'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Webhook URL'),
-      '#value' => _hosting_git_pull_callback_url($node),
-      '#description' => t('Requests to this URL will trigger a "Git Pull" task for !link. Configure your repo to hit this URL when it receives a commit.', array(
-        '!link' => l(t('this platform'), "node/{$node->nid}"),
-      )),
-      '#attributes' => array(
-        'onclick' => 'this.select()',
-      ),
-      '#states' => array(
-        'visible' => array(
-          ':input[name="git[pull_method]"]' => array('value' => HOSTING_GIT_PULL_CALLBACK),
+    if (!empty($node->nid)) {
+      $form['git']['pull_url'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Webhook URL'),
+        '#value' => _hosting_git_pull_callback_url($node),
+        '#description' => t('Requests to this URL will trigger a "Git Pull" task for !link. Configure your repo to hit this URL when it receives a commit.', array(
+          '!link' => l(t('this platform'), "node/{$node->nid}"),
+        )),
+        '#attributes' => array(
+          'onclick' => 'this.select()',
         ),
-      ),
-      '#access' => isset($form_state['node']->nid),
-    );
+        '#states' => array(
+          'visible' => array(
+            ':input[name="git[pull_method]"]' => array('value' => HOSTING_GIT_PULL_CALLBACK),
+          ),
+        ),
+      );
+    }
   }
 
   if ($form_id == 'hosting_git_settings_form') {
