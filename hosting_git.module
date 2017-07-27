@@ -44,12 +44,12 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
 
     // Get node object.
     $node = $form['#node'];
-  
+
     // Only add git info if allowed by settings.
     if (!variable_get("hosting_git_allow_deploy_" . $node->type, TRUE)) {
       return;
     }
-    
+
     // Skip Git forms for exsisting sites without a repo URL.
     // Adding one later is currently not supported.
     if (isset($node->nid) && $node->verified && empty($node->git['repo_url'])) {
@@ -164,12 +164,12 @@ function hosting_git_node_insert($node) {
  */
 function hosting_git_node_update($node) {
   if ($node->type == 'platform' || $node->type == 'site') {
-  
+
     // Only add git info if allowed by settings.
     if (!variable_get("hosting_git_allow_deploy_" . $node->type, TRUE)) {
       return;
     }
-    
+
     if (empty($node->git['repo_url']) || empty($node->git['git_ref']) || empty($node->git['git_docroot'])) {
       _hosting_git_node_load_defaults($node);
     }
@@ -193,12 +193,12 @@ function hosting_git_node_update($node) {
 function hosting_git_node_load($nodes, $types) {
   foreach ($nodes as $node) {
     if ($node->type == 'platform' || $node->type == 'site') {
-  
+
       // Only add git info if allowed by settings.
       if (!variable_get("hosting_git_allow_deploy_" . $node->type, TRUE)) {
         return;
       }
-      
+
       $r = db_query('SELECT * FROM {hosting_git} WHERE nid = :nid', array(':nid' => $node->nid));
       if ($result = $r->fetchObject()) {
         if (!isset($node->git)) {

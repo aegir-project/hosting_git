@@ -68,10 +68,10 @@ function hosting_git_pull_callback($name, $hash) {
     if ($status == HOSTING_GIT_WEBHOOK_STATUS_OK) {
       $message = "Webhook Received! Invoked by " . ip_address();
       $args = array('reset_hard' => TRUE);
-      
+
       // @TODO: Determine if environment is on a branch. Pull only works when on a branch.
       $task = hosting_add_task($node->nid, 'git-pull', $args);
-      
+
       if ($task->nid) {
         $message .= " Task started: " . url("node/{$task->nid}", array('absolute' => TRUE));
       }
