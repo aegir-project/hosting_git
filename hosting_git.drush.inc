@@ -44,6 +44,14 @@ function drush_hosting_git_pre_hosting_task($task) {
     }
   }
 
+  // --skip-hooks option.
+  $task->options['skip-hooks'] = $task->task_args['skip_hooks'];
+
+  // --commands option. We pass a list of drush commands so we don't need a duplicate hook_hosting_git_hooks() in provision.
+  if (!empty($task->task_args['git_hooks'])) {
+    $task->options['hooks'] = $task->task_args['git_hooks'];
+  }
+
   // Force the repository path.
   // Otherwise git climbs the tree to find a platform dir under git control.
   $task->options['force_repo_path_as_toplevel'] = TRUE;
@@ -71,6 +79,11 @@ function hosting_git_hosting_platform_context_options(&$task) {
  */
 function hosting_git_hosting_site_context_options(&$task) {
   hosting_git_hosting_platform_context_options($task);
+
+  // Transform the list of selected hooks to pass the command to the context_option.
+  foreach (array_filter($task->ref->git['git_hooks']) as $hook_name) {
+    $task->context_options['git_hooks'][] = $hook_name;
+  }
 }
 
 /**
@@ -81,6 +94,7 @@ function hosting_git_drush_context_import($context, &$node) {
     $node->git['repo_url'] = $context->repo_url;
     $node->git['git_ref'] = $context->git_ref;
     $node->git['repo_path'] = $context->repo_path;
+    $node->git['git_hooks'] = $context->git_hooks;
   }
 }
 

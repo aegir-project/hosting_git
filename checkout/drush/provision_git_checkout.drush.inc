@@ -4,6 +4,10 @@
  * Implementation of hook_drush_command().
  */
 function provision_git_checkout_drush_command() {
+
+  $hooks = provision_git_hooks();
+  $available_hooks = implode(', ', array_keys($hooks));
+
   $items['provision-git-checkout'] = array(
     'description' => 'Git checkout a branch or tag in a specified location.',
     'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
@@ -11,8 +15,10 @@ function provision_git_checkout_drush_command() {
       'git_ref' => dt('Parameter for the git checkout command'),
     ),
     'options' => array(
-      'new_branch' => "Optional: If the branch doesn't exist, create it. Equivalent to git checkout -b branchname"
-    )
+      'new_branch' => "Optional: If the branch doesn't exist, create it. Equivalent to git checkout -b branchname",
+      'hooks' => "Override the hooks to run after git checkout. Separate with a comma. Available hooks include ". $available_hooks
+
+    ),
   );
   return $items;
 }
@@ -77,6 +83,10 @@ function drush_provision_git_checkout($git_ref = '') {
  * Implements drush_hook_post_COMMAND().
  */
 function drush_provision_git_checkout_post_provision_git_checkout() {
+
+  // Run all hooks on updated sites
+  provision_git_run_git_hooks();
+
   // Re-verify the site, this corrects the file permission when necessary.
   $options = array();
   $target = d()->uri;

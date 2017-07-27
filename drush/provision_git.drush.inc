@@ -480,3 +480,135 @@ function provision_git_provision_services() {
   provision_git_register_autoload();
   return array('git' => NULL);
 }
+
+/**
+ * Load all available git hooks.
+ * @return mixed
+ */
+function provision_git_hooks() {
+  $hooks = drush_command_invoke_all('provision_git_hooks');
+  return $hooks;
+}
+
+/**
+ * Implements hook_provision_git_hooks();
+ * @return array
+ */
+function provision_git_provision_git_hooks() {
+  return array(
+    'update' => 'provision-update',
+    'cache' => 'provision-flush_cache',
+    'registry' => 'provision-rebuild_registry',
+    'revert' => 'provision-features_revert_all',
+  );
+}
+
+/**
+ * Advertise what hooks are available to be called after a git pull or checkout.
+ *
+ * @return
+ *   An associative array of type => drush command.
+ *
+ * @see provision.service.inc
+ */
+function hook_provision_git_hooks() {
+  return array(
+    'update' => 'provision-update',
+  );
+}
+
+/**
+ * Run all drush commands listed in the 'git_hooks' property of the drush alias.
+ *
+ * If run when a platform is active,
+ */
+function provision_git_run_git_hooks() {
+
+  if (drush_get_option('skip-hooks', FALSE)) {
+    drush_log('Skipping git hooks, as requested. Be aware the site might need database updates.', 'ok');
+    return;
+  }
+
+  // Run post-git-pull hooks.
+  $sites = array();
+  if (d()->type == 'site') {
+    $sites[] = d()->name;
+  }
+  elseif (d()->type == 'platform') {
+
+    $original_aliases = drush_get_context('site-aliases');
+
+    // Get a list of all that use this platform.
+    // Currently only the platform alias is loaded, so we need drush_sitealias_load_all()
+    drush_sitealias_load_all();
+    $aliases = drush_get_context('site-aliases');
+    foreach ($aliases as $alias_name => $alias) {
+      // If the alias is a site and platform is a match, load it into our sites list.
+      if (isset($alias['context_type']) && $alias['context_type'] == 'site' && $alias['platform'] == d()->name) {
+
+        // Use the URI as the key to prevent duplicate sites. Project aliases get included.
+        $sites[$alias['uri']] = $alias_name;
+      }
+    }
+
+    drush_log(dt('Found %num sites on this platform: %sites', array(
+      '%num' => count($sites),
+      '%sites' => implode(', ', $sites),
+    )), 'ok');
+  }
+
+  drush_log(dt('Running git hooks for %num sites.', array(
+    '%num' => count($sites),
+  )), 'ok');
+
+  // Go back to the original drush context state, so we don't confuse any other hooks.
+  if (isset($original_aliases)) {
+    drush_set_context('site-aliases', $original_aliases);
+  }
+  $hook_commands = provision_git_hooks();
+  foreach ($sites as $site) {
+    // @TODO: Gotta figure out a way to put this in the Git service.
+    if (is_array(d($site)->git_hooks)) {
+
+      // Allow overriding what hooks to run on the command line.
+      $hooks = drush_get_option('hooks', d($site)->git_hooks);
+      if (is_string($hooks)) {
+        $hooks = explode(',', $hooks);
+      }
+      $hooks = array_intersect($hooks, array_keys($hook_commands));
+
+      if (empty($hooks)) {
+        drush_log(dt('No hooks to invoke on site %site. Check drush context.', array(
+          '%site' => $site,
+        )), 'ok');
+      }
+      elseif (drush_get_option('hooks')) {
+        drush_log(dt('hooks option detected: Running %num git hooks on site %site: %hooks.', array(
+          '%num' => count($hooks),
+          '%hooks' => implode(', ', $hooks),
+          '%site' => $site,
+        )), 'ok');
+      }
+      else {
+        drush_log(dt('Using default git hooks for the site %site: %hooks.', array(
+          '%num' => count($hooks),
+          '%hooks' => implode(', ', $hooks),
+          '%site' => $site,
+        )), 'ok');
+      }
+
+      foreach ($hooks as $hook) {
+        drush_log(dt('Invoking git hook "%hook" on site %site: %command', array(
+          '%site' => $site,
+          '%hook' => $hook,
+          '%command' => $hook_commands[$hook],
+        )), 'ok');
+        provision_backend_invoke($site, $hook_commands[$hook]);
+      }
+
+      if (empty(d($site)->git_hooks)) {
+        drush_log(dt('No hooks to invoke. Check drush context.'), 'ok');
+      }
+    }
+  }
+}

@@ -47,6 +47,13 @@ function hosting_git_schema() {
         'not null' => TRUE,
         'default' => '',
       ),
+      'git_hooks' => array(
+        'description' => 'Serialized list of commands to run after a git checkout or git pull.',
+        'type' => 'text',
+        'not null' => FALSE,
+        'size' => 'big',
+        'serialize' => TRUE,
+      ),
     ),
     'primary key' => array('nid'),
   );
@@ -71,5 +78,18 @@ function hosting_git_update_7301 () {
     'length' => 255,
     'not null' => FALSE,
     'default' => '',
+  ));
+}
+
+/**
+ * Add git_hooks fields.
+ */
+function hosting_git_update_7303 () {
+  db_add_field('hosting_git', 'git_hooks', array(
+      'description' => 'Serialized list of commands to run after a git checkout or git pull.',
+      'type' => 'text',
+      'not null' => FALSE,
+      'size' => 'big',
+      'serialize' => TRUE,
   ));
 }

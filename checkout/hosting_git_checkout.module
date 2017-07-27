@@ -74,6 +74,48 @@ function hosting_task_git_checkout_form($node) {
     '#weight' => '-1',
     '#default_value' => TRUE,
   );
+  $form['skip_hooks'] = array(
+    '#title' => t('Skip git hooks'),
+    '#description' => t("Do not run git hooks after running git checkout.") . ' <em>' .  t('Warning: This may result in an unstable site if a database update is required') . '</em>',
+    '#type' => 'checkbox',
+    '#weight' => '-1',
+    '#default_value' => FALSE,
+    '#access' => variable_get('hosting_git_allow_skip_hooks', FALSE),
+  );
+  $form['git_hooks'] = array(
+    '#title' => t('Git Hooks'),
+    '#type' => 'checkboxes',
+    '#default_value' => $node->git['git_hooks'],
+    '#access' => variable_get('hosting_git_allow_task_override_hooks', FALSE),
+    '#options' => hosting_git_get_hook_options(),
+    '#states' => array(
+      'invisible' => array(
+        ':input[name="parameters[skip_hooks]"]' => array('checked' => TRUE),
+      ),
+    ),
+    '#element_validate' => array(
+      'hosting_git_hooks_implode'
+    )
+  );
+
+  $hooks = module_invoke_all('hosting_git_hooks');
+  foreach ($hooks as $name => $hook) {
+    $name = ucfirst($name);
+    $items[] = "<label>$name:</label> " . $hook['description'];
+  }
+  $form['hooks']['hooks_display'] = array(
+    '#type' => 'item',
+    '#title' => t('Git Hooks'),
+    '#markup' => theme('item_list', array('items' => $items)),
+    '#access' => !variable_get('hosting_git_allow_task_override_hooks', FALSE),
+  );
 
   return $form;
+}
+
+/**
+ * Element validate for the hooks field. Implode the string.
+ */
+function hosting_git_hooks_implode($element, &$form_state) {
+  form_set_value($element, implode(',', $element['#value']), $form_state);
 }

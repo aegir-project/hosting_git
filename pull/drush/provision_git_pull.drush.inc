@@ -4,6 +4,10 @@
  * Implementation of hook_drush_command().
  */
 function provision_git_pull_drush_command() {
+
+  $hooks = provision_git_hooks();
+  $available_hooks = implode(', ', array_keys($hooks));
+
   $items['provision-git-pull'] = array(
     'description' => 'Executes "git pull".',
     'bootstrap' => DRUSH_BOOTSTRAP_DRUSH,
@@ -11,6 +15,8 @@ function provision_git_pull_drush_command() {
       'reset' => 'Resets any working tree changes that would block a rebase.  USE WITH CAUTION',
       'repo_path' => 'Optional: force a repository path. Defaults to the site or platform dir.',
       'force_repo_path_as_toplevel' => 'Stop Git from looking in parent directories. Defaults to FALSE.',
+      'skip-hooks' => "Do not run the site's git hooks.",
+      'hooks' => "Override the hooks to run after git pull. Separate with a comma. Available hooks include ". $available_hooks
     ),
     'aliases' => array('pull'),
   );
@@ -60,7 +66,11 @@ function drush_provision_git_pull() {
  * Implements drush_hook_post_COMMAND().
  */
 function drush_provision_git_pull_post_provision_git_pull() {
-  // Re-verify the site, this corrects the file permission when necessary.
+
+  // Run all hooks on updated sites
+  provision_git_run_git_hooks();
+
+  // Re-verify the site or platform, this corrects the file permission when necessary.
   $options = array();
   $target = d()->uri;
   provision_backend_invoke($target, 'provision-verify', array(), $options);

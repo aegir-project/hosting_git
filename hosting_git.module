@@ -49,12 +49,6 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
     if (!variable_get("hosting_git_allow_deploy_" . $node->type, TRUE)) {
       return;
     }
-    
-    // Skip Git forms for exsisting sites without a repo URL.
-    // Adding one later is currently not supported.
-    if (isset($node->nid) && $node->verified && empty($node->git['repo_url'])) {
-      return;
-    }
 
     if ($form_id == 'platform_node_form') {
       $node_type = 'platform';
@@ -100,7 +94,7 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
         '#default_value' => isset($node->git['git_ref']) ? $node->git['git_ref'] : 'master',
       );
     }
-    else {
+    elseif (!empty($node->git['repo_url'])) {
       // Display it.
       $form['git']['repo_url_display'] = array(
         '#type' => 'item',
@@ -131,12 +125,33 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
       );
     }
 
+    // Git Hooks field
+    $options = hosting_git_get_hook_options();
+    if (empty($node->nid) && empty($node->git['git_hooks'])) {
+      $node->git['git_hooks'] = array('update', 'cache');
+    }
+    if (count($options)) {
+      $form['git']['git_hooks'] = array(
+        '#type' => 'checkboxes',
+        '#title' => t('Git Hooks'),
+        '#options' => $options,
+        '#description' => t('These hooks will be run after every Git Pull or Git Checkout.'),
+        '#default_value' => $node->git['git_hooks'],
+      );
+    }
+
     // Default collapse one fieldset based on the current node.
     if (empty($node->frommakefile['makefile'])) {
       $form['frommakefile']['#collapsed'] = TRUE;
     }
     elseif (empty($node->git['repo_url'])) {
       $form['git']['#collapsed'] = TRUE;
+    }
+
+    // Skip Git forms for existing sites without a repo URL.
+    // Adding one later is currently not supported.
+    if (isset($node->nid) && $node->verified && empty($node->git['repo_url'])) {
+      $form['git']['#access'] = FALSE;
     }
   }
 }
@@ -181,6 +196,7 @@ function hosting_git_node_update($node) {
         'repo_path' => $node->git['repo_path'],
         'repo_docroot' => $node->git['repo_docroot'],
         'git_ref' => $node->git['git_ref'],
+        'git_hooks' => serialize($node->git['git_hooks']),
       ))
       ->execute();
   }
@@ -209,6 +225,7 @@ function hosting_git_node_load($nodes, $types) {
         $node->git['git_ref'] = $result->git_ref;
         $node->git['repo_path'] = $result->repo_path;
         $node->git['repo_docroot'] = $result->repo_docroot;
+        $node->git['git_hooks'] = unserialize($result->git_hooks);
 
         // If platform repo path is empty, then load the publish_path in it's place.
         if ( $node->type == 'platform' && empty($node->git['repo_path'])) {
@@ -244,6 +261,10 @@ function _hosting_git_node_load_defaults(&$node) {
 
   if (!isset($node->git['git_ref'])) {
     $node->git['git_ref'] = 'master';
+  }
+
+  if (!isset($node->git['git_hooks'])) {
+    $node->git['git_hooks'] = array('update', 'cache');
   }
 }
 
@@ -348,5 +369,50 @@ function _hosting_git_site_or_platform_enabled($node) {
       ($node->type == 'site' && $node->site_status == HOSTING_SITE_ENABLED)
       || ($node->type == 'platform' && ($node->platform_status == HOSTING_PLATFORM_ENABLED || $node->platform_status == HOSTING_PLATFORM_LOCKED))
     )
+  );
+}
+
+/**
+ * Retrive a list of available Git Hooks ready for a Forms API checkboxes element.
+ */
+function hosting_git_get_hook_options() {
+  $options = array();
+  $hooks = module_invoke_all('hosting_git_hooks');
+  foreach ($hooks as $name => $hook) {
+    $options[$name] = $hook['description'];
+  }
+  return $options;
+}
+
+/**
+ * Implements hook_hosting_git_hooks()
+ */
+function hosting_git_hosting_git_hooks() {
+  return array(
+    'update' => array(
+      'description' => t('Run database updates'),
+    ),
+    'cache' => array(
+      'description' => t('Flush all caches'),
+    ),
+    'registry' => array(
+      'description' => t('Rebuild Registry'),
+    ),
+    'revert' => array(
+      'description' => t('Revert all features'),
+    ),
+  );
+}
+
+/**
+ * Return am array of arrays,
+ *
+ * @api
+ */
+function hook_hosting_git_hooks() {
+  return array(
+    'cache' => array(
+      'description' => t('Flush all caches'),
+    ),
   );
 }

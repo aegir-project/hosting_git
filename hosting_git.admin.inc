@@ -24,5 +24,19 @@ function hosting_git_settings_form() {
     '#title' => t('Allow deploying platforms from git repositories.'),
     '#default_value' => variable_get('hosting_git_allow_deploy_platform', TRUE),
   );
+  $form['hooks'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Git Hooks'),
+  );
+  $form['hooks']['hosting_git_allow_skip_hooks'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Allow users to skip git hooks when running Git Checkout or Git Pull tasks.'),
+    '#default_value' => variable_get('hosting_git_allow_skip_hooks', FALSE),
+  );
+  $form['hooks']['hosting_git_allow_task_override_hooks'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Allow users to configure what git hooks are run when running Git Checkout or Git Pull tasks.'),
+    '#default_value' => variable_get('hosting_git_allow_task_override_hooks', FALSE),
+  );
   return system_settings_form($form);
 }
