@@ -117,5 +117,14 @@ function hosting_task_git_checkout_form($node) {
  * Element validate for the hooks field. Implode the string.
  */
 function hosting_git_hooks_implode($element, &$form_state) {
-  form_set_value($element, implode(',', $element['#value']), $form_state);
+  if (variable_get('hosting_git_allow_task_override_hooks', FALSE)) {
+    $value = implode(',', $element['#value']);
+    if (empty($value)) {
+      $value = 'none';
+    }
+  }
+  else {
+    $value = NULL;
+  }
+  form_set_value($element, $value, $form_state);
 }
