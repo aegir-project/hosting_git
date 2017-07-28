@@ -78,12 +78,13 @@ function hosting_task_git_checkout_form($node) {
     '#title' => t('Skip git hooks'),
     '#description' => t("Do not run git hooks after running git checkout.") . ' <em>' .  t('Warning: This may result in an unstable site if a database update is required') . '</em>',
     '#type' => 'checkbox',
-    '#weight' => '-1',
+    '#weight' => '0',
     '#default_value' => FALSE,
     '#access' => variable_get('hosting_git_allow_skip_hooks', FALSE),
   );
   $form['git_hooks'] = array(
     '#title' => t('Git Hooks'),
+    '#weight' => '1',
     '#type' => 'checkboxes',
     '#default_value' => $node->git['git_hooks'],
     '#access' => variable_get('hosting_git_allow_task_override_hooks', FALSE),
