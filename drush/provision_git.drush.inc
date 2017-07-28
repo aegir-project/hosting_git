@@ -536,18 +536,23 @@ function provision_git_run_git_hooks() {
   }
   elseif (d()->type == 'platform') {
 
-    $original_aliases = drush_get_context('site-aliases');
-
     // Get a list of all that use this platform.
-    // Currently only the platform alias is loaded, so we need drush_sitealias_load_all()
-    drush_sitealias_load_all();
-    $aliases = drush_get_context('site-aliases');
+    $aliases_files = _drush_sitealias_find_alias_files();
+    $aliases = array();
+    foreach ($aliases_files as $filename) {
+      if ((@include $filename) === FALSE) {
+        drush_log(dt('Cannot open alias file "!alias", ignoring.', array('!alias' => realpath($filename))), LogLevel::BOOTSTRAP);
+        continue;
+      }
+    }
+
     foreach ($aliases as $alias_name => $alias) {
       // If the alias is a site and platform is a match, load it into our sites list.
       if (isset($alias['context_type']) && $alias['context_type'] == 'site' && $alias['platform'] == d()->name) {
 
         // Use the URI as the key to prevent duplicate sites. Project aliases get included.
-        $sites[$alias['uri']] = $alias_name;
+        // I'm using URI as the value as well because DevShop writes additional aliases which are copies. We want to be sure to use the Aegir-generated alias name
+        $sites[$alias['uri']] = $alias['uri'];
       }
     }
 
@@ -561,10 +566,6 @@ function provision_git_run_git_hooks() {
     '%num' => count($sites),
   )), 'ok');
 
-  // Go back to the original drush context state, so we don't confuse any other hooks.
-  if (isset($original_aliases)) {
-    drush_set_context('site-aliases', $original_aliases);
-  }
   $hook_commands = provision_git_hooks();
   foreach ($sites as $site) {
     // @TODO: Gotta figure out a way to put this in the Git service.
