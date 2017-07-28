@@ -118,3 +118,58 @@ function hosting_git_post_hosting_verify_task($task, $data) {
     }
   }
 }
+
+/**
+ * Implements hook_post_hosting_TASK_TYPE_task().
+ *
+ * When git checkout occurs, code may change, so run verify tasks.
+ */
+function hosting_git_post_hosting_git_checkout_task($task, $data) {
+  hosting_git_run_verify_tasks($task);
+}
+
+/**
+ * Implements hook_post_hosting_TASK_TYPE_task().
+ *
+ * When git pull occurs, code may change, so run verify tasks.
+ */
+function hosting_git_post_hosting_git_pull_task($task, $data) {
+  hosting_git_run_verify_tasks($task);
+}
+
+/**
+ * Helper for post-checkout and post-pull tasks to trigger verify tasks for sites and platform.
+ * @param $task
+ */
+function hosting_git_run_verify_tasks($task){
+  if (isset($task->ref->nid)) {
+    hosting_add_task($task->ref->nid, 'verify');
+    drush_log(dt('Verify task queued for %name', array(
+      '%name' => $task->ref->title,
+    )), 'ok');
+
+    // If task was on a site, queue up a verify for it's platform.
+    if ($task->ref->type == 'site') {
+      hosting_add_task($task->ref->platform, 'verify');
+      drush_log(dt('Verify task queued for platform %nid', array(
+        '%nid' => $task->ref->platform,
+      )), 'ok');
+    }
+    // If task was on a platform, queue up a verify for all sites on the platform.
+    elseif ($task->ref->type == 'platform') {
+
+      $sites = db_select('hosting_site', s)
+        ->fields('s', array('nid'))
+        ->condition('platform', $task->ref->nid)
+        ->execute()
+        ->fetchAllKeyed(0, 0);
+
+      foreach ($sites as $site) {
+        hosting_add_task($site, 'verify');
+        drush_log(dt('Verify task queued for site %nid', array(
+          '%nid' => $site,
+        )), 'ok');
+      }
+    }
+  }
+}
