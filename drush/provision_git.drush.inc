@@ -100,6 +100,7 @@ function provision_git_is_repo($repo_path = NULL, $set_error = TRUE) {
   // Do not allow /var/aegir to be repo_path.
   // See https://www.drupal.org/node/2893588
   if ($repo_path == '/var/aegir') {
+    drush_log(dt('Option "repo_path" cannot be "/var/aegir". Setting repo_path to NULL.'), 'warning');
     $repo_path = NULL;
     drush_set_option('repo_path', $repo_path);
   }
