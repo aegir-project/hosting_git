@@ -96,6 +96,14 @@ function provision_git_is_repo($repo_path = NULL, $set_error = TRUE) {
       $repo_path = d()->platform->root ? d()->platform->root : d()->root;
     }
   }
+
+  // Do not allow /var/aegir to be repo_path.
+  // See https://www.drupal.org/node/2893588
+  if ($repo_path == '/var/aegir') {
+    $repo_path = NULL;
+    drush_set_option('repo_path', $repo_path);
+  }
+
   // If repo_path does not exist, or git status returns False, this is not a git repo
   if (!file_exists($repo_path) || !drush_shell_cd_and_exec($repo_path, 'git status')) {
     if ($set_error) {
