@@ -426,8 +426,13 @@ function _provision_git_update_git_meta_data() {
 
       case 'platform':
       default:
-        $repo_path = d()->root;
+        $repo_path = d()->repo_path;
         break;
+    }
+
+    // If the repo path doesn't even contain a git config, do not update metadata.
+    if (!file_exists($repo_path . '/.git/config')) {
+      return;
     }
 
     if (drush_shell_cd_and_exec($repo_path, 'git config --local --get remote.origin.url')) {
