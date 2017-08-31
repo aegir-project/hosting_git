@@ -186,7 +186,7 @@ function hosting_git_pull_form_alter(&$form, &$form_state, $form_id) {
   if ($form_id == 'platform_node_form' || $form_id == 'site_node_form') {
     // Get node object.
     $node = $form['#node'];
-    
+
     // Only add git info if allowed by settings.
     if (!variable_get("hosting_git_allow_deploy_" . $node->type, TRUE)) {
       return;
@@ -196,9 +196,9 @@ function hosting_git_pull_form_alter(&$form, &$form_state, $form_id) {
     if (!isset($form['git'])) {
       return;
     }
-  
+
     $options = hosting_git_pull_method_options();
-  
+
     $form['git']['pull_method'] = array(
       '#title' => t('Git Pull Method'),
       '#type' => 'radios',
@@ -253,7 +253,7 @@ function hosting_git_pull_form_alter(&$form, &$form_state, $form_id) {
     else {
       $items[] = t('No requests ever detected.  If you add the trigger URL for a project to your git repo host, the IP will be logged and displayed here.');
     }
-  
+
     $items[] = t('Leave empty to allow access from any IP address.');
     $form['pullhook']['hosting_git_pull_webhook_ip_acl']['#description'] = theme('item_list', array('items' => $items));
 
@@ -270,13 +270,13 @@ function hosting_git_pull_settings_form_submit(&$form, &$form_state) {
  * @return array
  */
 function hosting_git_pull_method_options() {
-  
+
   // DISABLED
   $options[HOSTING_GIT_PULL_DISABLED] = t('Disabled') . '<div class="help-block">' . t('Running Git Pull is not allowed using the dashboard.') . '</div>';
-  
+
   // MANUAL
   $options[HOSTING_GIT_PULL_MANUAL] = t('Manual Git Pull') . '<div class="help-block">' . t('Use the dashboard to run a "Git Pull" task.') . '</div>';
-  
+
   // QUEUED
   $queues = hosting_get_queues();
   $options[HOSTING_GIT_PULL_QUEUE] = t('Queued Git Pull');
@@ -287,10 +287,10 @@ function hosting_git_pull_method_options() {
     $queued_help .= ' ' . l(t("Configure Queues"), 'admin/hosting/queues', array('attributes' => array('target' => '_blank')));
   }
   $options[HOSTING_GIT_PULL_QUEUE] .= '<div class="help-block">' . $queued_help . '</div>';
-  
+
   // WEBHOOK
   $options[HOSTING_GIT_PULL_CALLBACK] = t('Automatic Git Pull');
-  
+
   $webhook_help = t('Recommended. Pull code to the server as soon as it is pushed to your repository by setting up a webhook with your git repository host.');
   if (user_access('administer hosting queues')) {
     $webhook_help .= ' ' . l(t("Configure Webhooks"), 'admin/hosting/git', array('attributes' => array('target' => '_blank')));

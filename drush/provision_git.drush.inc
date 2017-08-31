@@ -96,8 +96,18 @@ function provision_git_is_repo($repo_path = NULL, $set_error = TRUE) {
       $repo_path = d()->platform->root ? d()->platform->root : d()->root;
     }
   }
+
+  // Do not allow /var/aegir to be repo_path.
+  // See https://www.drupal.org/node/2893588
+  if ($repo_path == '/var/aegir') {
+    drush_log(dt('Option "repo_path" cannot be "/var/aegir". Setting repo_path to NULL.'), 'warning');
+    $repo_path = NULL;
+    drush_set_option('repo_path', $repo_path);
+    return FALSE;
+  }
+
   // If repo_path does not exist, or git status returns False, this is not a git repo
-  if (!file_exists($repo_path) || !drush_shell_cd_and_exec($repo_path, 'git status')) {
+  if (!file_exists($repo_path . '/.git/config') || !drush_shell_cd_and_exec($repo_path, 'git status')) {
     if ($set_error) {
       drush_set_error('DRUSH_PROVISION_GIT_PULL_FAILED', dt("Git repository not found in: !path", array('!path' => $repo_path)));
     }
@@ -407,8 +417,9 @@ function drush_provision_git_post_provision_verify() {
 function drush_provision_git_post_provision_delete() {
   // If platform has a repo path that is not the root, it must be deleted as well.
   if (d()->type =='platform' && d()->repo_path != d()->root) {
-    drush_log('Deleting repo path at ' . d()->repo_path, 'ok');
-    _provision_recursive_delete(d()->repo_path);
+    //drush_log('Deleting repo path at ' . d()->repo_path, 'ok');
+    //_provision_recursive_delete(d()->repo_path);
+    drush_log('NOT deleteing ' . d()->repo_path . ' See https://www.drupal.org/node/2893588', 'ok');
   }
 }
 
@@ -425,8 +436,13 @@ function _provision_git_update_git_meta_data() {
 
       case 'platform':
       default:
-        $repo_path = d()->root;
+        $repo_path = d()->repo_path;
         break;
+    }
+
+    // If the repo path doesn't even contain a git config, do not update metadata.
+    if (!file_exists($repo_path . '/.git/config')) {
+      return;
     }
 
     if (drush_shell_cd_and_exec($repo_path, 'git config --local --get remote.origin.url')) {

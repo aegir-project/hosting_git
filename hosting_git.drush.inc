@@ -108,11 +108,11 @@ function hosting_git_post_hosting_verify_task($task, $data) {
     if (isset($context['repo_url'])) {
       $node->git['repo_url'] = $context['repo_url'];
     }
-  
+
     if (isset($context['git_ref'])) {
       $node->git['git_ref'] = $context['git_ref'];
     }
-  
+
     if (isset($context['repo_path'])) {
       $node->git['repo_path'] = $context['repo_path'];
     }
