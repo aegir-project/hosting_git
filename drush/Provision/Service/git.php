@@ -13,6 +13,7 @@ class Provision_Service_git extends Provision_Service {
     $context->setProperty('repo_path');
     $context->setProperty('deploy_from_git');
     $context->setProperty('git_ref');
+    $context->setProperty('git_hooks');
   }
 
   static function subscribe_site($context) {
