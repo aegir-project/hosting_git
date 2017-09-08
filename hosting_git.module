@@ -321,6 +321,17 @@ function hosting_git_node_view($node) {
       '#weight' => 100,
       '#markup' => $ref,
     );
+    $git_hooks_info = hosting_git_get_hook_options();
+    $enabled_hooks = array_filter($node->git['git_hooks']);
+    ksort($git_hooks_info);
+    asort($enabled_hooks);
+    $names = array_intersect_key($git_hooks_info, $enabled_hooks);
+    $node->content['info']['git_hooks'] = array(
+      '#type' => 'item',
+      '#title' => t('Git Hooks'),
+      '#markup' => implode(', ', $names),
+      '#weight' => 10,
+    );
   }
 }
 
