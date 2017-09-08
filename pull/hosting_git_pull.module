@@ -128,7 +128,6 @@ function hosting_task_git_pull_form($node) {
     '#weight' => '1',
     '#type' => 'checkboxes',
     '#default_value' => $node->git['git_hooks'],
-    '#access' => variable_get('hosting_git_allow_task_override_hooks', FALSE),
     '#options' => hosting_git_get_hook_options(),
     '#states' => array(
       'invisible' => array(
@@ -139,6 +138,14 @@ function hosting_task_git_pull_form($node) {
       'hosting_git_hooks_implode'
     )
   );
+  
+  // If not allowed to override, set as value.
+  if (!variable_get('hosting_git_allow_task_override_hooks', FALSE)) {
+    $form['git_hooks'] = array(
+      '#type' => 'value',
+      '#default_value' => implode(',', array_filter($node->git['git_hooks'])),
+    );
+  }
 
   $form['hooks'] = array(
     '#type' => 'container',
