@@ -100,13 +100,12 @@ function provision_git_is_repo($repo_path = NULL, $set_error = TRUE) {
   // Do not allow /var/aegir to be repo_path.
   // See https://www.drupal.org/node/2893588
   if ($repo_path == '/var/aegir') {
-    drush_log(dt('Warning: The "repo_path" for this !type is set to "/var/aegir". This is not allowed. Please manually edit the drush alias file in /var/aegir/.drush/!file.alias.drushrc.php.  Option repo_path has been unset.', array(
-      '!file' => ltrim(d()->name, '@'),
-      '!type' => d()->type,
-    )), 'warning');
     $repo_path = NULL;
     drush_set_option('repo_path', $repo_path);
-    return FALSE;
+    return drush_set_error('PROVISION_GIT_ERROR', dt('Warning: The "repo_path" for this !type is set to "/var/aegir". This is not allowed. Please manually edit the drush alias file in /var/aegir/.drush/!file.alias.drushrc.php.  Option repo_path has been unset.', array(
+      '!file' => ltrim(d()->name, '@'),
+      '!type' => d()->type,
+    )));
   }
 
   // If repo_path does not exist, or git status returns False, this is not a git repo
