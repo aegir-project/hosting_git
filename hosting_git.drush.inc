@@ -158,7 +158,7 @@ function hosting_git_run_verify_tasks($task){
     // If task was on a platform, queue up a verify for all sites on the platform.
     elseif ($task->ref->type == 'platform') {
 
-      $sites = db_select('hosting_site', s)
+      $sites = db_select('hosting_site', 's')
         ->fields('s', array('nid'))
         ->condition('platform', $task->ref->nid)
         ->execute()
