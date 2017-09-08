@@ -151,6 +151,9 @@ function hosting_task_git_pull_form($node) {
 
   $hooks = module_invoke_all('hosting_git_hooks');
   foreach ($hooks as $name => $hook) {
+    if (!$node->git['git_hooks'][$name]) {
+      continue;
+    }
     $name = ucfirst($name);
     $items[] = "<label>$name:</label> " . $hook['description'];
   }
