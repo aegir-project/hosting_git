@@ -90,7 +90,7 @@ function hosting_git_drush_context_import($context, &$node) {
 function hosting_git_post_hosting_verify_task($task, $data) {
   $node = $task->ref;
   $context = $data['context'];
-  if ($context['deploy_from_git']) {
+  if (isset($context['deploy_from_git']) && $context['deploy_from_git']) {
     if (isset($context['repo_url'])) {
       $node->git['repo_url'] = $context['repo_url'];
     }
