@@ -192,7 +192,7 @@ function drush_provision_git_push() {
   $repo_path = drush_get_option('repo_path');
   $target = d()->name;
 
-  //Execute git push
+  // Execute git push
   if (drush_shell_cd_and_exec($repo_path, 'git push')) {
     drush_log(dt('Git repository pushed.'), 'ok');
     drush_log(implode("\n", drush_shell_exec_output()), 'ok');
