@@ -138,7 +138,7 @@ function hosting_task_git_pull_form($node) {
       'hosting_git_hooks_implode'
     )
   );
-  
+
   // If not allowed to override, set as value.
   if (!variable_get('hosting_git_allow_task_override_hooks', FALSE)) {
     $form['git_hooks'] = array(
