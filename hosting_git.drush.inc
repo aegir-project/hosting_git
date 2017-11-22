@@ -161,6 +161,7 @@ function hosting_git_run_verify_tasks($task){
       $sites = db_select('hosting_site', 's')
         ->fields('s', array('nid'))
         ->condition('platform', $task->ref->nid)
+        ->condition('s.status', HOSTING_SITE_ENABLED, '=')
         ->execute()
         ->fetchAllKeyed(0, 0);
 
