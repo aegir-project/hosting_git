@@ -630,7 +630,7 @@ function provision_git_run_git_hooks() {
       }
     }
     else {
-      drush_log(dt('No hooks to invoke in site %site: %hooks.', array(
+      drush_log(dt('No hooks to invoke in site %site.', array(
         '%site' => $site,
       )), 'ok');
     }
