@@ -18,6 +18,7 @@ define('HOSTING_GIT_WEBHOOK_DEFAULT_ALLOWED_IPS', "
 104.192.143.208/28
 ");
 
+require_once 'vendor/autoload.php';
 
 /**
  * Implements hook_menu().
@@ -439,6 +440,9 @@ function hosting_git_hosting_git_hooks() {
     ),
     'revert' => array(
       'description' => t('Revert all features'),
+    ),
+    'composer' => array(
+      'description' => t('Run composer install'),
     ),
   );
 }

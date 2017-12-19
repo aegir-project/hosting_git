@@ -403,11 +403,25 @@ function drush_provision_git_provision_verify_validate() {
     }
     
     // Run composer install, if there is one.
-    // @TODO: Check if the composer git hook is enabled before blindly running composer install.
-    if (file_exists($repo_path . DIRECTORY_SEPARATOR . 'composer.json')) {
-      $return = drush_shell_cd_and_exec($repo_path, PROVISION_GIT_COMPOSER_INSTALL_COMMAND);
-      $output = drush_shell_exec_output();
-      drush_log(implode("\n", $output), ($return? 'success': 'error'));
+    if (isset(d()->git_hooks['composer']) && file_exists($repo_path . DIRECTORY_SEPARATOR . 'composer.json')) {
+  
+      // @TODO: Add as a simple service to d().
+      $process = new \Symfony\Component\Process\Process(PROVISION_GIT_COMPOSER_INSTALL_COMMAND);
+      $process->setTimeout(null);
+      $process->setWorkingDirectory($repo_path);
+      $process->run(function ($type, $buffer) {
+        if (\Symfony\Component\Process\Process::ERR === $type) {
+          drush_log($buffer, 'info');
+        } else {
+          drush_log($buffer, 'info');
+        }
+      });
+      
+      if ($process->getExitCode() != DRUSH_SUCCESS) {
+        drush_set_error(dt('Something went wrong when running the command: !command', [
+          '!command' => PROVISION_GIT_COMPOSER_INSTALL_COMMAND,
+        ]));
+      }
     }
     else {
       drush_log($repo_path . DIRECTORY_SEPARATOR . 'composer.json', 'warning');
@@ -550,6 +564,7 @@ function provision_git_provision_git_hooks() {
     'cache' => 'provision-flush_cache',
     'registry' => 'provision-rebuild_registry',
     'revert' => 'provision-features_revert_all',
+    'composer' => 'provision-composer_install',
   );
 }
 
