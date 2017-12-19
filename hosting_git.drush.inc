@@ -74,7 +74,7 @@ function hosting_git_hosting_platform_context_options(&$task) {
 
     // Transform the list of selected hooks to pass the command to the context_option.
     foreach (array_filter($task->ref->git['git_hooks']) as $hook_name) {
-      $task->context_options['git_hooks'][] = $hook_name;
+      $task->context_options['git_hooks'][$hook_name] = $hook_name;
     }
   }
 }
