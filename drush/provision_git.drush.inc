@@ -396,7 +396,7 @@ function drush_provision_git_provision_verify_validate() {
         drush_log(dt('Clone of !remote found at !path. Continuing verification.', [
           '!path' => $repo_path,
           '!remote' => d()->repo_url,
-        ]), 'ok');
+        ]), 'success');
       }
     }
   }
