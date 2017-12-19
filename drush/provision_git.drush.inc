@@ -192,7 +192,7 @@ function drush_provision_git_push() {
   $repo_path = drush_get_option('repo_path');
   $target = d()->name;
 
-  //Execute git push
+  // Execute git push
   if (drush_shell_cd_and_exec($repo_path, 'git push')) {
     drush_log(dt('Git repository pushed.'), 'ok');
     drush_log(implode("\n", drush_shell_exec_output()), 'ok');
@@ -212,8 +212,8 @@ function drush_provision_git_commit() {
   //Generate commit message
   $message = array();
   $message[] = "Provision Git Commit: $target";
-  $message[] = str_repeat('=', strlen($message[0]));
   if (drush_get_option('message')) {
+    $message[] = str_repeat('=', strlen($message[0]));
     $message[] = drush_get_option('message');
   }
   $message = implode("\n", $message);
@@ -380,6 +380,25 @@ function drush_provision_git_provision_verify_validate() {
       drush_log(dt("$context_type path does not exist. Invoking provision-git-clone."), 'ok');
       provision_backend_invoke(d()->name, 'provision-git-clone');
     }
+
+    // Path already exists:  check if remotes match.
+    else {
+      // If our repo_url is not found as a remote, show a warning.
+      drush_shell_cd_and_exec($repo_path, 'git remote -v');
+      $output = drush_shell_exec_output();
+      if (strpos(implode(',', $output), d()->repo_url) === FALSE) {
+        drush_log(dt('The git repository located at !path did not have the repository !remote set as a remote. Please check the platform repo URL and git remotes and try again.', [
+          '!path' => $repo_path,
+          '!remote' => d()->repo_url,
+        ]), 'warning');
+      }
+      else {
+        drush_log(dt('Clone of !remote found at !path. Continuing verification.', [
+          '!path' => $repo_path,
+          '!remote' => d()->repo_url,
+        ]), 'success');
+      }
+    }
   }
   else {
     // Check to see if we can puick up on existing Git info.
@@ -418,7 +437,7 @@ function drush_provision_git_post_provision_verify() {
  */
 function drush_provision_git_post_provision_delete() {
   // If platform has a repo path that is not the root, it must be deleted as well.
-  if (d()->type =='platform' && d()->repo_path != d()->root) {
+  if (d()->type =='platform' && !empty(d()->repo_path) && d()->repo_path != d()->root) {
     //drush_log('Deleting repo path at ' . d()->repo_path, 'ok');
     //_provision_recursive_delete(d()->repo_path);
     drush_log('NOT deleteing ' . d()->repo_path . ' See https://www.drupal.org/node/2893588', 'ok');
