@@ -1,5 +1,7 @@
 <?php
 
+define('PROVISION_GIT_COMPOSER_INSTALL_COMMAND', 'composer install --no-progress --prefer-dist --no-interaction --no-suggest');
+
 /**
  * @file
  * Provision/Drush hooks for git commands.
@@ -369,8 +371,8 @@ function drush_provision_git_provision_verify_validate() {
       case 'platform':
       default:
         $context_type = 'Platform';
-        $repo_path = d()->root;
-        $path_exists = provision_file()->exists(d()->root)->status();
+        $repo_path = d()->repo_path;
+        $path_exists = provision_file()->exists(d()->repo_path)->status();
         break;
     }
     // If the platform path doesn't exist, we will clone it.
@@ -398,6 +400,17 @@ function drush_provision_git_provision_verify_validate() {
           '!remote' => d()->repo_url,
         ]), 'success');
       }
+    }
+    
+    // Run composer install, if there is one.
+    // @TODO: Check if the composer git hook is enabled before blindly running composer install.
+    if (file_exists($repo_path . DIRECTORY_SEPARATOR . 'composer.json')) {
+      $return = drush_shell_cd_and_exec($repo_path, PROVISION_GIT_COMPOSER_INSTALL_COMMAND);
+      $output = drush_shell_exec_output();
+      drush_log(implode("\n", $output), ($return? 'success': 'error'));
+    }
+    else {
+      drush_log($repo_path . DIRECTORY_SEPARATOR . 'composer.json', 'warning');
     }
   }
   else {
