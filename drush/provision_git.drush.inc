@@ -401,31 +401,6 @@ function drush_provision_git_provision_verify_validate() {
         ]), 'success');
       }
     }
-    
-    // Run composer install, if there is one.
-    if (isset(d()->git_hooks['composer']) && file_exists($repo_path . DIRECTORY_SEPARATOR . 'composer.json')) {
-  
-      // @TODO: Add as a simple service to d().
-      $process = new \Symfony\Component\Process\Process(PROVISION_GIT_COMPOSER_INSTALL_COMMAND);
-      $process->setTimeout(null);
-      $process->setWorkingDirectory($repo_path);
-      $process->run(function ($type, $buffer) {
-        if (\Symfony\Component\Process\Process::ERR === $type) {
-          drush_log($buffer, 'info');
-        } else {
-          drush_log($buffer, 'info');
-        }
-      });
-      
-      if ($process->getExitCode() != DRUSH_SUCCESS) {
-        drush_set_error(dt('Something went wrong when running the command: !command', [
-          '!command' => PROVISION_GIT_COMPOSER_INSTALL_COMMAND,
-        ]));
-      }
-    }
-    else {
-      drush_log($repo_path . DIRECTORY_SEPARATOR . 'composer.json', 'warning');
-    }
   }
   else {
     // Check to see if we can puick up on existing Git info.
