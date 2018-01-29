@@ -332,7 +332,7 @@ function hosting_git_node_view($node) {
     $node->content['info']['git_hooks'] = array(
       '#type' => 'item',
       '#title' => t('Git Hooks'),
-      '#markup' => implode(', ', $names),
+      '#markup' => $names? implode(', ', $names): t('none'),
       '#weight' => 10,
     );
   }
