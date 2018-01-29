@@ -51,7 +51,7 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
       return;
     }
 
-    // Skip Git forms for exsisting sites without a repo URL.
+    // Skip Git forms for existing sites without a repo URL.
     // Adding one later is currently not supported.
     if (isset($node->nid) && $node->verified && empty($node->git['repo_url'])) {
       return;
