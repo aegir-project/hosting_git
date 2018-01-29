@@ -142,7 +142,7 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
         '#type' => 'checkboxes',
         '#title' => t('Git Hooks'),
         '#options' => $options,
-        '#description' => t('These hooks will be run after every Git Pull or Git Checkout.'),
+        '#description' => t('These hooks will be run on all sites on this platform after "Git Pull" or "Git Checkout".'),
         '#default_value' => $node->git['git_hooks'],
       );
     }
