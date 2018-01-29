@@ -135,7 +135,7 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
     // Git Hooks field.
     $options = hosting_git_get_hook_options();
     if (empty($node->nid) && empty($node->git['git_hooks'])) {
-      $node->git['git_hooks'] = array('update', 'cache');
+      $node->git['git_hooks'] = variable_get('hosting_git_default_hooks', ['update', 'cache']);
     }
     if (count($options)) {
       $form['git']['git_hooks'] = array(
@@ -144,8 +144,10 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
         '#options' => $options,
         '#description' => t('These hooks will be run on all sites on this platform after "Git Pull" or "Git Checkout".'),
         '#default_value' => $node->git['git_hooks'],
+        '#access' => variable_get("hosting_git_allow_hooks_{$node->type}"),
       );
     }
+
 
     // Default collapse one fieldset based on the current node.
     if (empty($node->frommakefile['makefile'])) {
