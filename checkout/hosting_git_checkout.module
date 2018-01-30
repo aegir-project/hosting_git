@@ -108,6 +108,7 @@ function hosting_task_git_checkout_form($node) {
     ),
   );
 
+  // Invoke hook_hosting_git_hooks().
   $hooks = module_invoke_all('hosting_git_hooks');
   foreach ($hooks as $name => $hook) {
     $name = ucfirst($name);

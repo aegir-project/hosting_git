@@ -397,6 +397,8 @@ function _hosting_git_site_or_platform_enabled($node) {
  */
 function hosting_git_get_hook_options() {
   $options = array();
+
+  // Invoke hook_hosting_git_hooks().
   $hooks = module_invoke_all('hosting_git_hooks');
   foreach ($hooks as $name => $hook) {
     $options[$name] = $hook['description'];

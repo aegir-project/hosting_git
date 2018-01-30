@@ -525,6 +525,7 @@ function provision_git_provision_services() {
  * @return mixed
  */
 function provision_git_hooks() {
+  // Invoke hook_provision_git_hooks().
   $hooks = drush_command_invoke_all('provision_git_hooks');
   return $hooks;
 }
@@ -540,20 +541,6 @@ function provision_git_provision_git_hooks() {
     'registry' => 'provision-rebuild_registry',
     'revert' => 'provision-features_revert_all',
     'composer' => 'provision-composer_install',
-  );
-}
-
-/**
- * Advertise what hooks are available to be called after a git pull or checkout.
- *
- * @return
- *   An associative array of type => drush command.
- *
- * @see provision.service.inc
- */
-function hook_provision_git_hooks() {
-  return array(
-    'update' => 'provision-update',
   );
 }
 
