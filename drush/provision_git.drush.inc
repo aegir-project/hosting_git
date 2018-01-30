@@ -440,9 +440,10 @@ function drush_provision_git_post_provision_verify() {
 function drush_provision_git_post_provision_delete() {
   // If platform has a repo path that is not the root, it must be deleted as well.
   if (d()->type =='platform' && !empty(d()->repo_path) && d()->repo_path != d()->root) {
-    //drush_log('Deleting repo path at ' . d()->repo_path, 'ok');
-    //_provision_recursive_delete(d()->repo_path);
-    drush_log('NOT deleteing ' . d()->repo_path . ' See https://www.drupal.org/node/2893588', 'ok');
+    drush_log(dt('Deleting repo path at %path', array(
+      '%path' => d()->repo_path
+    )), 'ok');
+    _provision_recursive_delete(d()->repo_path);
   }
 }
 
