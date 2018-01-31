@@ -466,6 +466,8 @@ function _provision_git_update_git_meta_data() {
 
     // If the repo path doesn't even contain a git config, do not update metadata.
     if (!file_exists($repo_path . '/.git/config')) {
+      drush_set_option('repo_url', '');
+      drush_set_option('git_ref', '');
       return;
     }
 
