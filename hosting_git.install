@@ -23,7 +23,7 @@ function hosting_git_schema() {
         'description' => 'The URL given to the git repository',
         'type' => 'varchar',
         'length' => 255,
-        'not null' => TRUE,
+        'not null' => FALSE,
         'default' => '',
       ),
       'repo_path' => array(
@@ -44,7 +44,7 @@ function hosting_git_schema() {
         'description' => 'The current git branch or tag.',
         'type' => 'varchar',
         'length' => 255,
-        'not null' => TRUE,
+        'not null' => FALSE,
         'default' => '',
       ),
       'git_hooks' => array(
@@ -91,5 +91,26 @@ function hosting_git_update_7303 () {
       'not null' => FALSE,
       'size' => 'big',
       'serialize' => TRUE,
+  ));
+}
+
+/**
+ * Add git_hooks fields.
+ */
+function hosting_git_update_7304 () {
+
+  db_change_field('hosting_git', 'repo_url', 'repo_url', array(
+    'description' => 'The URL given to the git repository',
+    'type' => 'varchar',
+    'length' => 255,
+    'not null' => FALSE,
+    'default' => '',
+  ));
+  db_change_field('hosting_git', 'git_ref', 'git_ref', array(
+    'description' => 'The current git branch or tag.',
+    'type' => 'varchar',
+    'length' => 255,
+    'not null' => FALSE,
+    'default' => '',
   ));
 }
