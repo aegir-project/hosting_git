@@ -45,45 +45,40 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
 
     // Get node object.
     $node = $form['#node'];
-
-    // Only add git info if allowed by settings.
-    if (!variable_get("hosting_git_allow_deploy_" . $node->type, TRUE)) {
-      return;
-    }
-
-    // Skip Git forms for existing sites without a repo URL.
-    // Adding one later is currently not supported.
-    if (isset($node->nid) && $node->verified && empty($node->git['repo_url'])) {
-      return;
-    }
+    $deploy_description = '';
+    $hooks_description = '';
 
     if ($form_id == 'platform_node_form') {
       $node_type = 'platform';
-      $deploy_description = t('You may deploy this platform from a Git repository. This functionality cannot be combined with a Makefile.');
-      // Default collapse 'from makefile' fieldset.
-      $form['frommakefile']['#collapsed'] = TRUE;
+      $deploy_description = t('You may deploy this platform from a Git repository.');
+      $hooks_description = t('These hooks will be run on all sites using this platform after "Git Pull" or "Git Checkout".');
+
     }
 
     if ($form_id == 'site_node_form') {
       $node_type = 'site';
       $deploy_description = t('You may deploy this site from a Git repository.');
+      $hooks_description = t('These hooks will be run after "Git Pull" or "Git Checkout".');
     }
 
-    $form['git'] = array(
-      '#type' => 'fieldset',
-      '#tree' => TRUE,
-      '#title' => t('Deploy from Git'),
-      '#collapsible' => TRUE,
-      '#description' => $deploy_description,
-      '#weight' => -1,
-    );
+    // If node is site or platform and aegir setting allows either hooks or repo URL...
+    if (_hosting_git_type_allowed($node->type)) {
 
-    if (!isset($node->nid) || (!$node->verified && !isset($node->git['repo_url']))) {
+      $form['git'] = array(
+        '#type' => 'fieldset',
+        '#tree' => TRUE,
+        '#title' => t('Deploy from Git'),
+        '#collapsible' => TRUE,
+        '#description' => $deploy_description,
+        '#weight' => -1,
+      );
+
       $form['git']['repo_url'] = array(
         '#type' => 'textfield',
         '#title' => 'Repository URL',
         '#description' => t('The full URL that you would pass to <em>git clone</em>. Example:  git@github.com:username/project.git or https://github.com/username/project.git. Note that this repository must be accessible by the Aegir user.'),
         '#default_value' => isset($node->git['repo_url']) ? $node->git['repo_url'] : '',
+        '#access' => !$node->verified,
       );
 
       $form['git']['repo_docroot'] = array(
@@ -91,7 +86,7 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
         '#title' => 'Repository docroot',
         '#description' => t('If Drupal is not in the root of your repository, enter the relative path within the repository that points to the correct subfolder.'),
         '#default_value' => isset($node->git['repo_docroot']) ? $node->git['repo_docroot'] : '',
-        '#access' => $node_type == 'platform',
+        '#access' => $node_type == 'platform' && !$node->verified,
       );
 
       $form['git']['git_ref'] = array(
@@ -99,68 +94,53 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
         '#title' => 'Branch or tag name',
         '#description' => t('If a branch or tag name is not supplied, the @node_type will be deployed from <em>master</em>. This must match the Git branch or tag name exactly.', array('@node_type' => $node_type)),
         '#default_value' => isset($node->git['git_ref']) ? $node->git['git_ref'] : 'master',
-      );
-    }
-    elseif (!empty($node->git['repo_url'])) {
-      // Display it.
-      $form['git']['repo_url_display'] = array(
-        '#type' => 'item',
-        '#title' => t('Repo URL'),
-        '#markup' => $node->git['repo_url'],
-      );
-      $form['git']['repo_path_display'] = array(
-        '#type' => 'item',
-        '#title' => t('Repo Path'),
-        '#markup' => $node->git['repo_path'],
-      );
-      $form['git']['git_ref_display'] = array(
-        '#type' => 'item',
-        '#title' => 'Branch or tag name',
-        '#markup' => isset($node->git['git_ref']) ? $node->git['git_ref'] : 'master',
-        '#description' => 'Use a checkout task to change this value.',
+        '#access' => !$node->verified,
       );
 
-      // Don't lose values
-      $form['git']['repo_url'] = array(
-        '#type' => 'value',
-        '#default_value' => isset($node->git['repo_url']) ? $node->git['repo_url'] : '',
-      );
-      // Don't lose values
-      $form['git']['repo_path'] = array(
-        '#type' => 'value',
-        '#default_value' => isset($node->git['repo_path']) ? $node->git['repo_path'] : '',
-      );
-    }
+      if ($node->verified) {
+        // Display it.
+        $form['git']['repo_url_display'] = array(
+          '#type' => 'item',
+          '#title' => t('Repo URL'),
+          '#markup' => $node->git['repo_url'],
+          '#access' => !empty($node->git['repo_url']),
+        );
+        $form['git']['repo_path_display'] = array(
+          '#type' => 'item',
+          '#title' => t('Repo Path'),
+          '#markup' => $node->git['repo_path'],
+          '#access' => !empty($node->git['repo_path']),
+        );
+        $form['git']['git_ref_display'] = array(
+          '#type' => 'item',
+          '#title' => 'Branch or tag name',
+          '#markup' => isset($node->git['git_ref']) ? $node->git['git_ref'] : 'master',
+          '#description' => 'Use a checkout task to change this value.',
+          '#access' => !empty($node->git['git_ref']),
+        );
+      }
 
-    // Git Hooks field.
-    $options = hosting_git_get_hook_options();
-    if (empty($node->nid) && empty($node->git['git_hooks'])) {
-      $node->git['git_hooks'] = variable_get('hosting_git_default_hooks', ['update', 'cache']);
-    }
-    if (count($options)) {
-      $form['git']['git_hooks'] = array(
-        '#type' => 'checkboxes',
-        '#title' => t('Git Hooks'),
-        '#options' => $options,
-        '#description' => t('These hooks will be run on all sites on this platform after "Git Pull" or "Git Checkout".'),
-        '#default_value' => $node->git['git_hooks'],
-        '#access' => variable_get("hosting_git_allow_hooks_{$node->type}"),
-      );
-    }
+      // Git Hooks field.
+      if (variable_get("hosting_git_allow_hooks_" . $node->type, TRUE)) {
+        $options = hosting_git_get_hook_options();
+        if (empty($node->nid) && empty($node->git['git_hooks'])) {
+          $node->git['git_hooks'] = variable_get('hosting_git_default_hooks', ['update', 'cache']);
+        }
+        if (count($options)) {
+          $form['git']['git_hooks'] = array(
+            '#type' => 'checkboxes',
+            '#title' => t('Git Hooks'),
+            '#options' => $options,
+            '#description' => $hooks_description,
+            '#default_value' => $node->git['git_hooks'],
+          );
+        }
+      }
 
-
-    // Default collapse one fieldset based on the current node.
-    if (empty($node->frommakefile['makefile'])) {
-      $form['frommakefile']['#collapsed'] = TRUE;
-    }
-    elseif (empty($node->git['repo_url'])) {
-      $form['git']['#collapsed'] = TRUE;
-    }
-
-    // Skip Git forms for existing sites without a repo URL.
-    // Adding one later is currently not supported.
-    if (isset($node->nid) && $node->verified && empty($node->git['repo_url'])) {
-      $form['git']['#access'] = FALSE;
+      // Default collapse one fieldset based on the current node.
+      if (!empty($node->nid) && empty($node->frommakefile['makefile'])) {
+        $form['frommakefile']['#collapsed'] = TRUE;
+      }
     }
   }
 }
@@ -180,21 +160,17 @@ function hosting_git_node_submit($node, $form, &$form_state) {
  * Implements hook_node_insert().
  */
 function hosting_git_node_insert($node) {
-  return hosting_git_node_update($node);
+  hosting_git_node_update($node);
 }
 
 /**
  * Implements hook_node_update().
  */
 function hosting_git_node_update($node) {
-  if ($node->type == 'platform' || $node->type == 'site') {
+  if (_hosting_git_type_allowed($node->type)) {
 
-    // Only add git info if allowed by settings.
-    if (!variable_get("hosting_git_allow_deploy_" . $node->type, TRUE)) {
-      return;
-    }
-
-    if (empty($node->git['repo_url']) || empty($node->git['git_ref']) || empty($node->git['git_docroot'])) {
+    $git_data = array_filter($node->git);
+    if (empty($git_data)) {
       _hosting_git_node_load_defaults($node);
     }
 
@@ -217,12 +193,7 @@ function hosting_git_node_update($node) {
  */
 function hosting_git_node_load($nodes, $types) {
   foreach ($nodes as $node) {
-    if ($node->type == 'platform' || $node->type == 'site') {
-
-      // Only add git info if allowed by settings.
-      if (!variable_get("hosting_git_allow_deploy_" . $node->type, TRUE)) {
-        return;
-      }
+    if (_hosting_git_type_allowed($node->type)) {
 
       $r = db_query('SELECT * FROM {hosting_git} WHERE nid = :nid', array(':nid' => $node->nid));
       if ($result = $r->fetchObject()) {
@@ -234,7 +205,7 @@ function hosting_git_node_load($nodes, $types) {
         $node->git['git_ref'] = $result->git_ref;
         $node->git['repo_path'] = $result->repo_path;
         $node->git['repo_docroot'] = $result->repo_docroot;
-        $node->git['git_hooks'] = unserialize($result->git_hooks);
+        $node->git['git_hooks'] = (array) unserialize($result->git_hooks);
 
         // If platform repo path is empty, then load the publish_path in it's place.
         if ( $node->type == 'platform' && empty($node->git['repo_path'])) {
@@ -269,7 +240,7 @@ function _hosting_git_node_load_defaults(&$node) {
   }
 
   if (!isset($node->git['git_ref'])) {
-    $node->git['git_ref'] = 'master';
+    $node->git['git_ref'] = '';
   }
 
   if (!isset($node->git['git_hooks'])) {
@@ -462,4 +433,19 @@ function hook_hosting_git_hooks() {
       'description' => t('Flush all caches'),
     ),
   );
+}
+
+/**
+ * Returns TRUE if this node type is either allowed to deploy from git or is allowed to have hooks.
+ *
+ * Returns FALSE for any type other than 'site' or 'platform'.
+ *
+ * @param $type
+ *
+ * @return bool
+ */
+function _hosting_git_type_allowed($type) {
+  return
+    ($type == 'site' || $type == 'platform') &&
+    (variable_get("hosting_git_allow_deploy_" . $type, TRUE) || variable_get("hosting_git_allow_hooks_" . $type, TRUE));
 }
