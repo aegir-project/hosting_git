@@ -74,27 +74,25 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
       );
 
       $form['git']['repo_url'] = array(
-        '#type' => 'textfield',
+        '#type' => $node->verified? 'value': 'textfield',
         '#title' => 'Repository URL',
         '#description' => t('The full URL that you would pass to <em>git clone</em>. Example:  git@github.com:username/project.git or https://github.com/username/project.git. Note that this repository must be accessible by the Aegir user.'),
         '#default_value' => isset($node->git['repo_url']) ? $node->git['repo_url'] : '',
-        '#access' => !$node->verified,
       );
 
       $form['git']['repo_docroot'] = array(
-        '#type' => 'textfield',
+        '#type' => $node->verified? 'value': 'textfield',
         '#title' => 'Repository docroot',
         '#description' => t('If Drupal is not in the root of your repository, enter the relative path within the repository that points to the correct subfolder.'),
         '#default_value' => isset($node->git['repo_docroot']) ? $node->git['repo_docroot'] : '',
-        '#access' => $node_type == 'platform' && !$node->verified,
+        '#access' => $node_type == 'platform',
       );
 
       $form['git']['git_ref'] = array(
-        '#type' => 'textfield',
+        '#type' => $node->verified? 'value': 'textfield',
         '#title' => 'Branch or tag name',
         '#description' => t('If a branch or tag name is not supplied, the @node_type will be deployed from <em>master</em>. This must match the Git branch or tag name exactly.', array('@node_type' => $node_type)),
         '#default_value' => isset($node->git['git_ref']) ? $node->git['git_ref'] : 'master',
-        '#access' => !$node->verified,
       );
 
       if ($node->verified) {
@@ -104,12 +102,21 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
           '#title' => t('Repo URL'),
           '#markup' => $node->git['repo_url'],
           '#access' => !empty($node->git['repo_url']),
+          '#weight' => 1,
         );
         $form['git']['repo_path_display'] = array(
           '#type' => 'item',
           '#title' => t('Repo Path'),
           '#markup' => $node->git['repo_path'],
           '#access' => !empty($node->git['repo_path']),
+          '#weight' => 2,
+        );
+        $form['git']['repo_docroot'] = array(
+          '#type' => 'item',
+          '#title' => t('Repo Document Root'),
+          '#markup' => $node->git['repo_docroot'],
+          '#access' => !empty($node->git['repo_docroot']),
+          '#weight' => 3,
         );
         $form['git']['git_ref_display'] = array(
           '#type' => 'item',
@@ -117,6 +124,7 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
           '#markup' => isset($node->git['git_ref']) ? $node->git['git_ref'] : 'master',
           '#description' => 'Use a checkout task to change this value.',
           '#access' => !empty($node->git['git_ref']),
+          '#weight' => 4,
         );
       }
 
