@@ -96,6 +96,12 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
       );
 
       if ($node->verified) {
+
+        // If site, set repo path to site folder for display.
+        if ($node->type == 'site') {
+          $node->git['repo_path'] = "{$node->publish_path}/sites/{$node->title}";
+        }
+
         // Display it.
         $form['git']['repo_url_display'] = array(
           '#type' => 'item',
@@ -276,49 +282,54 @@ function hosting_git_node_delete($node) {
  * Implements hook_node_type_view().
  */
 function hosting_git_node_view($node) {
-  if (!empty($node->git['repo_url'])) {
-    $node->content['info']['repo_url'] = array(
-      '#type' => 'item',
-      '#title' => t('Git URL'),
-      '#weight' => 100,
-      '#markup' => check_plain($node->git['repo_url']),
-    );
-    if (!empty($node->git['repo_path'])) {
-      $node->content['info']['repo_path'] = array(
-        '#type' => 'item',
-        '#title' => t('Git repository path'),
-        '#weight' => 100,
-        '#markup' => check_plain($node->git['repo_path']),
-      );
-    }
-    if (!empty($node->git['repo_docroot'])) {
-      $node->content['info']['repo_docroot'] = array(
-        '#type' => 'item',
-        '#title' => t('Git repository docroot'),
-        '#weight' => 100,
-        '#markup' => check_plain($node->git['repo_docroot']),
-      );
-    }
+  $node->content['info']['repo_url'] = array(
+    '#type' => 'item',
+    '#title' => t('Git URL'),
+    '#weight' => 100,
+    '#markup' => check_plain($node->git['repo_url']),
+    '#access' => !empty($node->git['repo_url']),
+  );
 
-    $ref = $node->git['git_ref'] ? $node->git['git_ref'] : t('Pending Verification');
-    $node->content['info']['git_ref'] = array(
-      '#type' => 'item',
-      '#title' => t('Git reference'),
-      '#weight' => 100,
-      '#markup' => $ref,
-    );
-    $git_hooks_info = hosting_git_get_hook_options();
-    $enabled_hooks = array_filter($node->git['git_hooks']);
-    ksort($git_hooks_info);
-    asort($enabled_hooks);
-    $names = array_intersect_key($git_hooks_info, $enabled_hooks);
-    $node->content['info']['git_hooks'] = array(
-      '#type' => 'item',
-      '#title' => t('Git Hooks'),
-      '#markup' => $names? implode(', ', $names): t('none'),
-      '#weight' => 10,
-    );
+  // If site, set repo path to site folder for display.
+  if ($node->type == 'site') {
+    $node->git['repo_path'] = "{$node->publish_path}/sites/{$node->title}";
   }
+
+  $node->content['info']['repo_path'] = array(
+    '#type' => 'item',
+    '#title' => t('Git repository path'),
+    '#weight' => 100,
+    '#markup' => check_plain($node->git['repo_path']),
+    '#access' => !empty($node->git['repo_path']),
+  );
+  $node->content['info']['repo_docroot'] = array(
+    '#type' => 'item',
+    '#title' => t('Git repository docroot'),
+    '#weight' => 100,
+    '#markup' => check_plain($node->git['repo_docroot']),
+    '#access' => !empty($node->git['repo_docroot']),
+  );
+
+  $ref = $node->git['git_ref'] ? $node->git['git_ref'] : t('Pending Verification');
+  $node->content['info']['git_ref'] = array(
+    '#type' => 'item',
+    '#title' => t('Git reference'),
+    '#weight' => 100,
+    '#markup' => $ref,
+    '#access' => !empty($node->git['git_ref']),
+  );
+  $git_hooks_info = hosting_git_get_hook_options();
+  $enabled_hooks = array_filter($node->git['git_hooks']);
+  ksort($git_hooks_info);
+  asort($enabled_hooks);
+  $names = array_intersect_key($git_hooks_info, $enabled_hooks);
+  $node->content['info']['git_hooks'] = array(
+    '#type' => 'item',
+    '#title' => t('Git Hooks'),
+    '#markup' => $names? implode(', ', $names): t('none'),
+    '#weight' => 10,
+    '#access' => isset($node->git['git_hooks']),
+  );
 }
 
 /* Private functions */
