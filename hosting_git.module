@@ -48,6 +48,15 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
     $deploy_description = '';
     $hooks_description = '';
 
+    // Look for active verify task. If there is one, block access to form elements.
+    if (hosting_task_outstanding($node->nid, 'verify')) {
+      $form_element_access = false;
+    }
+    // Otherwise, allow access based on verified status
+    else {
+      $form_element_access = !$node->verified;
+    }
+
     if ($form_id == 'platform_node_form') {
       $node_type = 'platform';
       $deploy_description = t('You may deploy this platform from a Git repository.');
@@ -74,14 +83,14 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
       );
 
       $form['git']['repo_url'] = array(
-        '#type' => $node->verified? 'value': 'textfield',
+        '#type' => $form_element_access? 'textfield': 'value',
         '#title' => 'Repository URL',
         '#description' => t('The full URL that you would pass to <em>git clone</em>. Example:  git@github.com:username/project.git or https://github.com/username/project.git. Note that this repository must be accessible by the Aegir user.'),
         '#default_value' => isset($node->git['repo_url']) ? $node->git['repo_url'] : '',
       );
 
       $form['git']['repo_docroot'] = array(
-        '#type' => $node->verified? 'value': 'textfield',
+        '#type' => $form_element_access? 'textfield': 'value',
         '#title' => 'Repository docroot',
         '#description' => t('If Drupal is not in the root of your repository, enter the relative path within the repository that points to the correct subfolder.'),
         '#default_value' => isset($node->git['repo_docroot']) ? $node->git['repo_docroot'] : '',
@@ -89,13 +98,13 @@ function hosting_git_form_alter(&$form, &$form_state, $form_id) {
       );
 
       $form['git']['git_ref'] = array(
-        '#type' => $node->verified? 'value': 'textfield',
+        '#type' => $form_element_access? 'textfield': 'value',
         '#title' => 'Branch or tag name',
         '#description' => t('If a branch or tag name is not supplied, the @node_type will be deployed from <em>master</em>. This must match the Git branch or tag name exactly.', array('@node_type' => $node_type)),
         '#default_value' => isset($node->git['git_ref']) ? $node->git['git_ref'] : 'master',
       );
 
-      if ($node->verified) {
+      if (!$form_element_access) {
 
         // If site, set repo path to site folder for display.
         if ($node->type == 'site') {
@@ -185,7 +194,7 @@ function hosting_git_node_insert($node) {
  * Implements hook_node_update().
  */
 function hosting_git_node_update($node) {
-  if (_hosting_git_type_allowed($node->type)) {
+  if (_hosting_git_type_allowed($node->type) && is_array($node->git)) {
 
     $git_data = array_filter($node->git);
     if (empty($git_data)) {
