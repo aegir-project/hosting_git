@@ -424,9 +424,6 @@ function hosting_git_hosting_git_hooks() {
     'revert' => array(
       'description' => t('Revert all features'),
     ),
-    'composer' => array(
-      'description' => t('Run composer install'),
-    ),
   );
 }
 
