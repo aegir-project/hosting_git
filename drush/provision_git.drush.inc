@@ -1,7 +1,5 @@
 <?php
 
-define('PROVISION_GIT_COMPOSER_INSTALL_COMMAND', 'composer install --no-progress --prefer-dist --no-interaction --no-suggest');
-
 /**
  * @file
  * Provision/Drush hooks for git commands.
@@ -543,7 +541,6 @@ function provision_git_provision_git_hooks() {
     'cache' => 'provision-flush_cache',
     'registry' => 'provision-rebuild_registry',
     'revert' => 'provision-features_revert_all',
-    'composer' => 'provision-composer_install',
   );
 }
 

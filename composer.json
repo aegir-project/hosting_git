@@ -1,7 +1,0 @@
-{
-    "name": "aegir/hosting_git",
-    "type": "drupal-module",
-    "require": {
-        "symfony/process": "^3.0"
-    }
-}
