@@ -42,8 +42,7 @@ script:
 
   # Tests are included in the docker-compose.yml file in the tests repo.
   - docker-compose run --help
-  - sudo docker-compose
-    -f docker-compose-hostmaster.yml
+  - sudo docker-compose -f docker-compose-hostmaster.yml run
     -e AEGIR_MAKEFILE=/source/hosting_git/.travis.make
     -v $TRAVIS_BUILD_DIR:/source/hosting_git
-    run hostmaster
+    hostmaster
