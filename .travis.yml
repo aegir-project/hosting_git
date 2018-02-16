@@ -37,6 +37,7 @@ before_install:
   - cd /home/travis/build/aegir-project/tests/travis
   - sudo bash prepare-docker.sh
   - bash prepare-testenv.sh
+  - sudo chmod 777 ../composer.lock
 
 script:
 
