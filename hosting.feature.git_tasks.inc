@@ -67,5 +67,24 @@ function hosting_git_hosting_feature() {
     )
   );
 
+  $features['git_tag'] = array(
+    'title' => t('Git tag task'),
+    'description' => t('Create tags in site and platform git repositories'),
+    'status' => HOSTING_FEATURE_DISABLED,
+    'module' => 'hosting_git_tag',
+    'group' => 'advanced',
+    'role_permissions' => array(
+      'aegir platform manager' => array(
+        'create platform git-tag task',
+      ),
+      'aegir account manager' => array(
+        'create git-tag task',
+      ),
+      'aegir client' => array(
+        'create git-tag task',
+      ),
+    )
+  );
+
   return $features;
 }

@@ -1,0 +1,6 @@
+name = Git Tag
+description = Create and push git tags.
+package = Aegir Git
+dependencies[] = hosting_site
+dependencies[] = hosting_git
+core = 7.x

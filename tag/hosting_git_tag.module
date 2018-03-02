@@ -1,0 +1,108 @@
+<?php
+
+/**
+ * Implements hook_hosting_tasks().
+ */
+function hosting_git_tag_hosting_tasks() {
+  $tasks = array();
+
+  $tasks['site']['git-tag'] = array(
+    'title' => t('Git tag'),
+    'description' => t('Runs a git tag on the current site.'),
+    'access callback' => 'hosting_git_tag_access_tag',
+    'dialog' => TRUE,
+  );
+
+  $tasks['platform']['git-tag'] = array(
+    'title' => t('Git tag'),
+    'description' => t('Runs a git tag on the current platform.'),
+    'access callback' => 'hosting_git_tag_access_tag',
+    'dialog' => TRUE,
+  );
+
+  return $tasks;
+}
+
+/**
+ * Access function for the tag task on platforms.
+ */
+function hosting_git_tag_access_tag($node) {
+  // Only consider doing this if we have a git repo.
+  if (empty($node->git['repo_url'])) {
+    return FALSE;
+  }
+  if (($node->type == 'site' && user_access('create site git-tag task'))
+    || ($node->type == 'platform' && user_access('create platform git-tag task'))) {
+    return TRUE;
+  }
+  return FALSE;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function hosting_git_tag_permission() {
+  return array(
+    'create git-tag task' => array(
+      'title' => t('create git-tag task'),
+      'description' => t('Create a git-tag task for sites'),
+    ),
+    'create platform git-tag task' => array(
+      'title' => t('create platform git-tag task'),
+      'description' => t('Create a git-tag task for platforms'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_form().
+ */
+function hosting_task_git_tag_form($node) {
+
+  drupal_set_title(t('Create a Git Tag'));
+
+  $form['git_tag'] = array(
+    '#title' => t('Tag'),
+    '#description' => t("The name to give the tag."),
+    '#type' => 'textfield',
+    '#weight' => 1,
+    '#default_value' => isset($_GET['git_tag'])? $_GET['git_tag']: '',
+  );
+
+  $form['push'] = array(
+    '#title' => t('Push Tag to remote'),
+    '#description' => t("Push the tag to the repository's remote."),
+    '#type' => 'checkbox',
+    '#weight' => 2,
+    '#default_value' => TRUE,
+  );
+
+  $form['reset_hard'] = array(
+    '#title' => t('Force: Reset --hard before tag?'),
+    '#description' => t("Uncommitted changes will be lost."),
+    '#type' => 'checkbox',
+    '#weight' => 3,
+    '#default_value' => TRUE,
+  );
+
+  $form['checkout'] = array(
+    '#title' => t('Checkout Tag'),
+    '#description' => t("When done creating the tag, check it out so the repository stays on that tag."),
+    '#type' => 'checkbox',
+    '#weight' => 4,
+    '#default_value' => TRUE,
+  );
+
+
+  return $form;
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function hosting_git_tag_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id == 'hosting_task_confirm_form' && $form['task']['#value'] == 'git-tag') {
+    drupal_set_title(t('Create a Git Tag'));
+    $form['actions']['submit']['#value'] = t('Create Git Tag');
+  }
+}

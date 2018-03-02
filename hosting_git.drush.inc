@@ -29,7 +29,7 @@ function drush_hosting_git_pre_hosting_task($task) {
   }
 
   // Only work on selected task types.
-  if (!in_array($task->task_type, array('git-pull', 'git-checkout'))) {
+  if (!in_array($task->task_type, array('git-pull', 'git-checkout', 'git-tag'))) {
     return;
   }
 
@@ -41,6 +41,18 @@ function drush_hosting_git_pre_hosting_task($task) {
     if (!empty($task->task_args['checkout_git_ref'])) {
       // Pass the option provision_git expects.
       $task->options['git_ref'] = $task->task_args['checkout_git_ref'];
+    }
+    if (!empty($task->task_args['git_tag'])) {
+      // Pass the option provision_git expects.
+      $task->args[] = $task->task_args['git_tag'];
+    }
+    if ($task->task_args['push']) {
+      // Pass the option provision_git expects.
+      $task->options['push'] = TRUE;
+    }
+    if ($task->task_args['checkout']) {
+      // Pass the option provision_git expects.
+      $task->options['checkout'] = TRUE;
     }
   }
 
