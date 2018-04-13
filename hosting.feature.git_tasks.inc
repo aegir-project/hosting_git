@@ -59,10 +59,10 @@ function hosting_git_hosting_feature() {
         'create platform git-checkout task',
       ),
       'aegir account manager' => array(
-        'create git-checkout task',
+        'create site git-checkout task',
       ),
       'aegir client' => array(
-        'create git-checkout task',
+        'create site git-checkout task',
       ),
     )
   );

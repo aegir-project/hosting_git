@@ -43,8 +43,8 @@ function hosting_git_checkout_access_checkout($node) {
  */
 function hosting_git_checkout_permission() {
   return array(
-    'create git-checkout task' => array(
-      'title' => t('create git-checkout task'),
+    'create site git-checkout task' => array(
+      'title' => t('create site git-checkout task'),
       'description' => t('Create a git-checkout task for sites'),
     ),
     'create platform git-checkout task' => array(
