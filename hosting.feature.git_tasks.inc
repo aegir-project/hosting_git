@@ -78,10 +78,10 @@ function hosting_git_hosting_feature() {
         'create platform git-tag task',
       ),
       'aegir account manager' => array(
-        'create git-tag task',
+        'create site git-tag task',
       ),
       'aegir client' => array(
-        'create git-tag task',
+        'create site git-tag task',
       ),
     )
   );
